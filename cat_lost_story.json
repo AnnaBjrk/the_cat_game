@@ -1,6 +1,7 @@
 {
   "start_story": "En häxa knackade på kattens hus och sen blev allt dimmigt. Han vaknar här på den här öde parkeringen, blöt och smutsig, och vill bara hem. Men han vet inte var han är... Katten tittar sig omkring och funderar: vart ska han gå?",
-  "blocked": "Här är bara hus. Du kan inte gå den vägen.",
+  "blocked": "Katten försöker gå in i ett hus, men det går inte. Dörren är stängd.",
+  "off_map": "Här tar staden slut, och katten kan inte gå längre åt det hållet.",
   "free_descriptions": [
     "En bil far förbi, sen är allt öde.",
     "Det börjar regna igen och vår katt fryser.",

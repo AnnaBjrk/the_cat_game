@@ -34,7 +34,7 @@ NO_ANSWER = "nej"
 SQUARE_LABELS = {
     "start": "start",
     "free": "fri",
-    "blocked": "hus",
+    "blocked": "■",
     "question": "fråga",
     "fetch": "café",
     "leave": "häxa",
@@ -93,6 +93,7 @@ class Phase(Enum):
 class Outcome(Enum):
     MOVED = auto()
     BLOCKED = auto()
+    OFF_MAP = auto()
     INVALID_COMMAND = auto()
     QUESTION = auto()
     CORRECT_ANSWER = auto()
@@ -233,7 +234,7 @@ def move(state, direction):
     row = state.position[0] + direction[0]
     col = state.position[1] + direction[1]
     if not (0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE):
-        return Outcome.BLOCKED
+        return Outcome.OFF_MAP
 
     state.discovered.add((row, col))
     if GRID[row][col] == BLOCKED_SQUARE:
@@ -291,6 +292,8 @@ def message_for(outcome, state, story):
             return state.rng.choice(story["free_descriptions"])
         case Outcome.BLOCKED:
             return story["blocked"]
+        case Outcome.OFF_MAP:
+            return story["off_map"]
         case Outcome.INVALID_COMMAND:
             return INVALID_COMMAND_TEXT
         case Outcome.QUESTION:

@@ -39,6 +39,7 @@ CHOICES_PER_QUESTION = 4
 STORY_KEYS = (
     "start_story",
     "blocked",
+    "off_map",
     "free_descriptions",
     "fetch",
     "leave",
@@ -198,7 +199,7 @@ class MovementTest(unittest.TestCase):
             with self.subTest(command=command):
                 outcome, state = step(make_game(position), command)
 
-                self.assertEqual(outcome, Outcome.BLOCKED)
+                self.assertEqual(outcome, Outcome.OFF_MAP)
                 self.assertEqual(state.position, position)
 
     def test_blocked_square_stops_the_cat_but_is_discovered(self):
@@ -564,9 +565,13 @@ class MessageTest(unittest.TestCase):
         for command in ["upp", "ner", "vänster", "höger", "avsluta"]:
             self.assertIn(command, message)
 
-    def test_blocked_and_edge_give_the_blocked_text(self):
+    def test_blocked_square_and_edge_have_their_own_texts(self):
         self.assertEqual(self.message_after(make_game((1, 1)), "höger"), "<blocked>")
-        self.assertEqual(self.message_after(make_game(), "upp"), "<blocked>")
+        self.assertEqual(self.message_after(make_game(), "upp"), "<off_map>")
+
+    def test_blocked_text_is_about_the_house(self):
+        self.assertIn("hus", load_content().story["blocked"])
+        self.assertNotIn("hus", load_content().story["off_map"])
 
     def test_free_square_gives_a_free_description(self):
         message = self.message_after(make_game(), "höger")
@@ -711,7 +716,7 @@ class RenderMapTest(unittest.TestCase):
     def test_blocked_square_shows_after_an_attempt(self):
         _, state = step(make_game((1, 1)), "höger")
 
-        self.assertIn("[ hus ]", render_map(state).splitlines()[1])
+        self.assertIn("[  ■  ]", render_map(state).splitlines()[1])
 
     def test_all_square_types_have_swedish_names_and_the_same_width(self):
         state = make_game()
@@ -721,7 +726,7 @@ class RenderMapTest(unittest.TestCase):
 
         lines = render_map(state).splitlines()[:len(GRID)]
 
-        for name in ["fri", "hus", "fråga", "café", "häxa", "hem"]:
+        for name in ["fri", "■", "fråga", "café", "häxa", "hem"]:
             self.assertIn(name, "\n".join(lines))
         for line in lines:
             self.assertEqual(len(line), 39)

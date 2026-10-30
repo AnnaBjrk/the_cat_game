@@ -122,7 +122,8 @@ Varje tur får spelaren ett meddelande. Logiken är att varje drag ger ett resul
 | Resultat | Text |
 |---|---|
 | Spelet startar | `start_story`, följt av kommandona |
-| `blocked` eller utanför kartan | `blocked` |
+| `blocked` | `blocked` |
+| Utanför kartan | `off_map` |
 | `free`, en öppnad `leave` eller att gå till `start` igen | En slumpad text från `free_descriptions` |
 | `question` | `question_intro` följt av frågan |
 | Rätt eller fel svar | `question_correct` eller `question_wrong` |
@@ -139,7 +140,8 @@ Texterna finns i `cat_lost_story.json`:
 ```json
 {
   "start_story": "En häxa knackade på kattens hus och sen blev allt dimmigt. Han vaknar här på den här öde parkeringen, blöt och smutsig, och vill bara hem. Men han vet inte var han är... Katten tittar sig omkring och funderar: vart ska han gå?",
-  "blocked": "Här är bara hus. Du kan inte gå den vägen.",
+  "blocked": "Katten försöker gå in i ett hus, men det går inte. Dörren är stängd.",
+  "off_map": "Här tar staden slut, och katten kan inte gå längre åt det hållet.",
   "free_descriptions": [
     "En bil far förbi, sen är allt öde.",
     "Det börjar regna igen och vår katt fryser.",
@@ -167,7 +169,7 @@ Kartan skrivs ut före varje drag:
 - Kattens plats är markerad.
 - Innehållet i en ruta visas först när katten har besökt den eller försökt gå in på den, till exempel en `blocked`-ruta.
 - Rutor som inte har upptäckts visas som `?`.
-- Rutorna visas på svenska: `start`, `fri`, `hus`, `fråga`, `café`, `häxa`, `hem`.
+- Rutorna visas på svenska: `start`, `fri`, `fråga`, `café`, `häxa`, `hem`. Ett hus (`blocked`) visas som en fylld fyrkant: `■`.
 - Inventory visas tillsammans med kartan.
 - Alla rutor är 5 tecken breda.
 - Ordningen är karta, kaka, tom rad, meddelande och sist frågan om vart katten ska gå.
