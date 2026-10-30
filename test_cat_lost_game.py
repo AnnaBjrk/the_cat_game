@@ -16,7 +16,10 @@ from cat_lost_game import (
     Outcome,
     Phase,
     load_content,
+    message_for,
     new_game,
+    render_map,
+    start_message,
     step,
 )
 
@@ -470,6 +473,168 @@ class HomeTest(unittest.TestCase):
         outcome, state = step(state, "höger")
         self.assertEqual(outcome, Outcome.HOME)
         self.assertEqual(state.phase, Phase.WON)
+
+
+def make_marked_story():
+    story = {key: f"<{key}>" for key in STORY_KEYS}
+    story["free_descriptions"] = ["<free 1>", "<free 2>"]
+    return story
+
+
+class MessageTest(unittest.TestCase):
+    def message_after(self, state, command):
+        outcome, state = step(state, command)
+        return message_for(outcome, state, make_marked_story())
+
+    def test_start_message_has_story_and_commands(self):
+        message = start_message(make_marked_story())
+
+        self.assertIn("<start_story>", message)
+        for command in ["upp", "ner", "vänster", "höger", "avsluta"]:
+            self.assertIn(command, message)
+
+    def test_blocked_and_edge_give_the_blocked_text(self):
+        self.assertEqual(self.message_after(make_game((1, 1)), "höger"), "<blocked>")
+        self.assertEqual(self.message_after(make_game(), "upp"), "<blocked>")
+
+    def test_free_square_gives_a_free_description(self):
+        message = self.message_after(make_game(), "höger")
+
+        self.assertIn(message, make_marked_story()["free_descriptions"])
+
+    def test_returning_to_start_gives_a_free_description_and_not_the_story(self):
+        message = self.message_after(make_game((0, 1)), "vänster")
+
+        self.assertIn(message, make_marked_story()["free_descriptions"])
+
+    def test_opened_leave_gives_a_free_description(self):
+        _, state = enter_leave([FAVORITE_CAKE])
+        _, state = step(state, "upp")
+
+        message = self.message_after(state, "ner")
+
+        self.assertIn(message, make_marked_story()["free_descriptions"])
+
+    def test_question_shows_intro_question_and_numbered_choices(self):
+        outcome, state = step(make_game((1, 1)), "ner")
+
+        message = message_for(outcome, state, make_marked_story())
+
+        self.assertIn("<question_intro>", message)
+        self.assertIn(state.current_question["question"], message)
+        for number, choice in enumerate(state.current_question["choices"], start=1):
+            self.assertIn(f"{number}. {choice}", message)
+
+    def test_answers_give_the_right_text(self):
+        _, state = step(make_game((1, 1)), "ner")
+        self.assertEqual(self.message_after(state, correct_answer(state)), "<question_correct>")
+
+        _, state = step(make_game((1, 1)), "ner")
+        self.assertEqual(self.message_after(state, wrong_answer(state)), "<question_wrong>")
+
+    def test_invalid_answer_repeats_the_choices(self):
+        _, state = step(make_game((1, 1)), "ner")
+
+        message = self.message_after(state, "hej")
+
+        self.assertIn(f"1. {state.current_question['choices'][0]}", message)
+        self.assertNotIn("<question_intro>", message)
+
+    def test_fetch_shows_text_and_numbered_cakes(self):
+        message = self.message_after(make_game((0, 3)), "höger")
+
+        self.assertIn("<fetch>", message)
+        for number, cake in enumerate(CAKES, start=1):
+            self.assertIn(f"{number}. {cake}", message)
+
+    def test_invalid_cake_choice_repeats_the_cakes(self):
+        message = self.message_after(enter_fetch(), "hej")
+
+        self.assertIn(f"1. {CAKES[0]}", message)
+        self.assertNotIn("<fetch>", message)
+
+    def test_chosen_cake_is_named(self):
+        state = enter_fetch()
+
+        message = self.message_after(state, str(CAKES.index("morotskaka") + 1))
+
+        self.assertIn("morotskaka", message)
+
+    def test_witch_gives_leave_text_followed_by_the_result(self):
+        for inventory, expected in [
+            ([FAVORITE_CAKE], "<witch_correct>"),
+            (["kanelbulle"], "<witch_wrong>"),
+            ([], "<witch_no_cake>"),
+        ]:
+            with self.subTest(inventory=inventory):
+                outcome, state = enter_leave(inventory)
+
+                message = message_for(outcome, state, make_marked_story())
+
+                self.assertLess(message.index("<leave>"), message.index(expected))
+
+    def test_home_gives_the_home_text(self):
+        _, state = enter_leave([FAVORITE_CAKE])
+
+        self.assertEqual(self.message_after(state, "höger"), "<home>")
+
+    def test_invalid_command_and_quit_give_a_message(self):
+        self.assertTrue(self.message_after(make_game(), "hoppa"))
+        self.assertTrue(self.message_after(make_game(), "avsluta"))
+
+    def test_every_outcome_has_a_message_with_the_real_story(self):
+        story = load_content().story
+        for outcome in Outcome:
+            with self.subTest(outcome=outcome):
+                state = make_game()
+                state.current_question = make_question()
+                state.cake_choices = CAKES
+                state.inventory = ["kanelbulle"]
+
+                self.assertTrue(message_for(outcome, state, story))
+
+
+class RenderMapTest(unittest.TestCase):
+    def test_new_game_shows_only_the_cat(self):
+        expected = "\n".join(
+            ["[katt ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]"]
+            + ["[  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]"] * 4
+            + ["Kaka: ingen"]
+        )
+
+        self.assertEqual(render_map(make_game()), expected)
+
+    def test_visited_square_shows_its_swedish_name(self):
+        _, state = step(make_game(), "höger")
+
+        self.assertEqual(
+            render_map(state).splitlines()[0],
+            "[start] [katt ] [  ?  ] [  ?  ] [  ?  ]",
+        )
+
+    def test_blocked_square_shows_after_an_attempt(self):
+        _, state = step(make_game((1, 1)), "höger")
+
+        self.assertIn("[ hus ]", render_map(state).splitlines()[1])
+
+    def test_all_square_types_have_swedish_names_and_the_same_width(self):
+        state = make_game()
+        state.discovered = {
+            (row, col) for row in range(len(GRID)) for col in range(len(GRID))
+        }
+
+        lines = render_map(state).splitlines()[:len(GRID)]
+
+        for name in ["fri", "hus", "fråga", "café", "häxa", "hem"]:
+            self.assertIn(name, "\n".join(lines))
+        for line in lines:
+            self.assertEqual(len(line), 39)
+
+    def test_inventory_is_shown(self):
+        state = make_game()
+        state.inventory = ["äppelpaj"]
+
+        self.assertIn("Kaka: äppelpaj", render_map(state))
 
 
 if __name__ == "__main__":

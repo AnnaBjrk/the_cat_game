@@ -30,7 +30,7 @@ Varje del börjar med tester och avslutas med en commit. Kryssrutan bockas av i 
 - [x] **2. Förflyttning:** karta, kommandon, väggar och kanter, upptäckta rutor och `avsluta`.
 - [x] **3. Frågor:** fasbyte, frågekö utan upprepning och att fel svar skickar tillbaka katten.
 - [x] **4. Café och häxa:** kakval, inventory och `leave`. Hela vägen hem spelas i ett test.
-- [ ] **5. Text och karta:** `message_for()` och `render_map()`.
+- [x] **5. Text och karta:** `message_for()` och `render_map()`.
 - [ ] **6. Terminal:** spelloopen och vinstanimeringen. `.claude/commands/smoke-test.md` skrivs om så att den startar spelet och kör `avsluta`.
 - [ ] **7. Avslut:** prestandatester, kontroll av specens "Klart när", provspelning för hand och den nya filen i `CLAUDE.md`.
 

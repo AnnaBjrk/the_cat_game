@@ -28,6 +28,25 @@ QUESTION_SQUARE = "question"
 CAKES = ["kanelbulle", "chokladboll", "prinsesstårta", "morotskaka", "äppelpaj"]
 FAVORITE_CAKE = "äppelpaj"
 
+SQUARE_LABELS = {
+    "start": "start",
+    "free": "fri",
+    "blocked": "hus",
+    "question": "fråga",
+    "fetch": "café",
+    "leave": "häxa",
+    "home": "hem",
+}
+CAT_LABEL = "katt"
+UNKNOWN_LABEL = "?"
+SQUARE_WIDTH = 5
+
+COMMANDS_TEXT = "Kommandon: upp, ner, vänster, höger, avsluta."
+INVALID_COMMAND_TEXT = f"Det kommandot finns inte. {COMMANDS_TEXT}"
+INVALID_CHOICE_TEXT = "Svara med en av siffrorna:"
+CAKE_CHOSEN_TEXT = "Du tar med dig en {cake}."
+QUIT_TEXT = "Hej då! Katten väntar på att du ska komma tillbaka."
+
 QUIT_COMMAND = "avsluta"
 DIRECTIONS = {
     "upp": (-1, 0),
@@ -202,3 +221,70 @@ def step(state, player_input):
     if command not in DIRECTIONS:
         return Outcome.INVALID_COMMAND, state
     return move(state, DIRECTIONS[command]), state
+
+
+def numbered(options):
+    return "\n".join(f"{number}. {option}" for number, option in enumerate(options, start=1))
+
+
+def question_text(question):
+    return f"{question['question']}\n{numbered(question['choices'])}"
+
+
+def start_message(story):
+    return f"{story['start_story']}\n\n{COMMANDS_TEXT}"
+
+
+def message_for(outcome, state, story):
+    match outcome:
+        case Outcome.MOVED:
+            return state.rng.choice(story["free_descriptions"])
+        case Outcome.BLOCKED:
+            return story["blocked"]
+        case Outcome.INVALID_COMMAND:
+            return INVALID_COMMAND_TEXT
+        case Outcome.QUESTION:
+            return f"{story['question_intro']}\n\n{question_text(state.current_question)}"
+        case Outcome.CORRECT_ANSWER:
+            return story["question_correct"]
+        case Outcome.WRONG_ANSWER:
+            return story["question_wrong"]
+        case Outcome.INVALID_ANSWER:
+            return f"{INVALID_CHOICE_TEXT}\n{numbered(state.current_question['choices'])}"
+        case Outcome.CAKE_CHOICE:
+            return f"{story['fetch']}\n\n{numbered(state.cake_choices)}"
+        case Outcome.CAKE_CHOSEN:
+            return CAKE_CHOSEN_TEXT.format(cake=state.inventory[0])
+        case Outcome.INVALID_CAKE_CHOICE:
+            return f"{INVALID_CHOICE_TEXT}\n{numbered(state.cake_choices)}"
+        case Outcome.WITCH_CORRECT:
+            return f"{story['leave']}\n\n{story['witch_correct']}"
+        case Outcome.WITCH_WRONG:
+            return f"{story['leave']}\n\n{story['witch_wrong']}"
+        case Outcome.WITCH_NO_CAKE:
+            return f"{story['leave']}\n\n{story['witch_no_cake']}"
+        case Outcome.HOME:
+            return story["home"]
+        case Outcome.QUIT:
+            return QUIT_TEXT
+
+
+def square_label(state, position):
+    if position == state.position:
+        return CAT_LABEL
+    if position in state.discovered:
+        row, col = position
+        return SQUARE_LABELS[GRID[row][col]]
+    return UNKNOWN_LABEL
+
+
+def render_map(state):
+    lines = [
+        " ".join(
+            f"[{square_label(state, (row, col)):^{SQUARE_WIDTH}}]"
+            for col in range(GRID_SIZE)
+        )
+        for row in range(GRID_SIZE)
+    ]
+    cake = state.inventory[0] if state.inventory else "ingen"
+    return "\n".join([*lines, f"Kaka: {cake}"])
