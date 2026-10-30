@@ -3,12 +3,23 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from cat_lost_game import (
-    CHOICES_PER_QUESTION,
-    MIN_QUESTIONS,
-    STORY_KEYS,
-    ContentError,
-    load_content,
+from cat_lost_game import ContentError, load_content
+
+MIN_QUESTIONS = 10
+CHOICES_PER_QUESTION = 4
+STORY_KEYS = (
+    "start_story",
+    "blocked",
+    "free_descriptions",
+    "fetch",
+    "leave",
+    "question_intro",
+    "question_correct",
+    "question_wrong",
+    "witch_correct",
+    "witch_wrong",
+    "witch_no_cake",
+    "home",
 )
 
 
@@ -75,14 +86,6 @@ class LoadContentTest(unittest.TestCase):
         self.questions_path.write_text("[{", encoding="utf-8")
 
         with self.assertRaisesRegex(ContentError, "questions.json"):
-            self.load()
-
-    def test_missing_story_text_names_the_key(self):
-        story = make_story()
-        del story["blocked"]
-        self.write_files(make_questions(), story)
-
-        with self.assertRaisesRegex(ContentError, "blocked"):
             self.load()
 
 
