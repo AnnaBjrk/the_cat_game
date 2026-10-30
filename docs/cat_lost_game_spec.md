@@ -48,6 +48,7 @@ Viktiga positioner:
 
 ## 4. Förflyttning
 - Kommandon: `upp`, `ner`, `vänster`, `höger` och `avsluta`. Ett steg per kommando.
+- `avsluta` fungerar alltid, även under en fråga eller ett kakval.
 - Stor eller liten bokstav spelar ingen roll, och mellanslag före och efter ignoreras.
 - Ogiltigt kommando: meddelande och ny fråga. Katten står kvar.
 - Utanför kartan eller `blocked`: katten står kvar och får meddelandet i avsnitt 9.
@@ -162,14 +163,15 @@ Kartan skrivs ut före varje drag:
 - Rutor som inte har upptäckts visas som `?`.
 - Rutorna visas på svenska: `start`, `fri`, `hus`, `fråga`, `café`, `häxa`, `hem`.
 - Inventory visas tillsammans med kartan.
+- Alla rutor är 5 tecken breda.
 
 Exempel:
 ```text
-[katt] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
-[  ? ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
-[  ? ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
-[  ? ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
-[  ? ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
+[katt ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
+[  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
+[  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
+[  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
+[  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
 Kaka: ingen
 Vart vill du gå? (upp/ner/vänster/höger/avsluta):
 ```
@@ -211,7 +213,8 @@ Testerna använder `unittest` och täcker följande:
 - [ ] Rutor visas först efter besök eller försök att gå in.
 - [ ] Alla frågor i JSON-filen uppfyller kraven i avsnitt 6.
 - [ ] En saknad eller ogiltig JSON-fil ger ett tydligt felmeddelande.
-- [ ] Spelet startar och går att avsluta med `avsluta`.
+- [ ] Spelet startar och går att avsluta med `avsluta`, även under en fråga och ett kakval.
+- [ ] Alla rutor på kartan är 5 tecken breda.
 - [ ] Kommandon fungerar oavsett stor eller liten bokstav och med mellanslag runt, inklusive `vänster` och `höger`.
 - [ ] Frågor upprepas inte förrän alla har använts, och ett ogiltigt svar ger inget straff.
 - [ ] När katten skickas tillbaka utlöser rutan inget nytt.
