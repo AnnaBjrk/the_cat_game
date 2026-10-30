@@ -1,0 +1,19 @@
+RIDDLE 1
+Question: What has legs but cannot walk?
+Answer: table
+
+RIDDLE 2
+Question: What has to be broken before you can use it?
+Answer: egg
+
+RIDDLE 3
+Question: I am tall when I am young and short when I am old. What am I?
+Answer: candle
+
+RIDDLE 4
+Question: What goes up but never comes down?
+Answer: age
+
+RIDDLE 5
+Question: What can you catch but not throw?
+Answer: cold

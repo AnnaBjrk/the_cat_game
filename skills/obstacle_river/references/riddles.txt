@@ -1,0 +1,19 @@
+RIDDLE 1
+Question: What has keys but no locks, space but no rooms, and you can enter but never go inside?
+Answer: keyboard
+
+RIDDLE 2
+Question: The more you take, the more you leave behind. What am I?
+Answer: footsteps
+
+RIDDLE 3
+Question: I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?
+Answer: echo
+
+RIDDLE 4
+Question: What has a bed but never sleeps, and a mouth but never eats?
+Answer: river
+
+RIDDLE 5
+Question: What runs but never walks, has a bank but no money, and has a mouth but never talks?
+Answer: river

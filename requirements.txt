@@ -1,0 +1,6 @@
+google-adk
+python-dotenv
+google-adk
+python-dotenv
+openinference-instrumentation-google-adk
+arize-phoenix-otel
