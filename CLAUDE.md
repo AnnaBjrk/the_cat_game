@@ -10,6 +10,7 @@ The earlier game, Cat Goes Home, is archived in `arkiv/`. It is a riddle game bu
 - `cat_lost_questions.json` and `cat_lost_story.json`: questions and story texts
 - `test_cat_lost_game.py`: tests
 - `docs/`: spec and build plan for Cat Lost. Read both before working on it.
+- `CHANGELOG.md`: changes per version, with commit ids
 - `arkiv/`: the archived Cat Goes Home game
 - `arkiv/game.py`: self-contained game loop that reads riddles from `arkiv/skills/`
 - `arkiv/main.py`: CLI runner for the ADK workflow agent
@@ -36,3 +37,4 @@ These commands are for the archived game. Cat Lost version 1 needs no installed 
 - Add a runtime check only when the spec asks for it. Tests check what we control, such as the content files in this repo, so the game doesn't check them again when it starts.
 - Never hardcode a value to work around a problem. Fix the cause.
 - Write commit messages in Swedish with a heading and a few lines on what changed and why. When reporting a commit in chat, give the heading and then the commit id.
+- When game behaviour changes, update the spec in the same commit. Then add the change to `CHANGELOG.md` with its commit id in a follow-up commit, since a commit can't contain its own id.
