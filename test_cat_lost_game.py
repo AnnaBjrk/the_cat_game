@@ -2,6 +2,7 @@ import contextlib
 import io
 import json
 import random
+import re
 import subprocess
 import sys
 import tempfile
@@ -12,10 +13,15 @@ from unittest import mock
 
 from cat_lost_game import (
     ANIMATION_FRAMES,
+    ANSI_BOLD,
+    ANSI_ITALIC,
     ANSI_RESET,
     CAKES,
     CAT_FRAMES,
+    CLEAR_SCREEN,
+    COMMANDS_TEXT,
     FRAME_SECONDS,
+    MESSAGE_WIDTH,
     FAVORITE_CAKE,
     FETCH_POSITION,
     HOME_POSITION,
@@ -25,6 +31,7 @@ from cat_lost_game import (
     GRID,
     Outcome,
     Phase,
+    format_message,
     load_content,
     main,
     message_for,
@@ -70,6 +77,14 @@ def make_questions():
 
 def make_story():
     return {key: "text" for key in STORY_KEYS}
+
+
+def plain(text):
+    return re.sub(r"\033\[[0-9;]*[A-Za-z]", "", text)
+
+
+def unwrapped(text):
+    return " ".join(plain(text).split())
 
 
 def make_game(position=(0, 0), seed=1):
@@ -699,46 +714,118 @@ class MessageTest(unittest.TestCase):
 
 
 class RenderMapTest(unittest.TestCase):
-    def test_new_game_shows_only_the_cat(self):
-        expected = "\n".join(
-            ["[katt ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]"]
-            + ["[  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]"] * 4
-            + ["Kaka: ingen"]
-        )
+    def map_lines(self, state, round_number=1):
+        return plain(render_map(state, round_number)).splitlines()
 
-        self.assertEqual(render_map(make_game()), expected)
-
-    def test_visited_square_shows_its_swedish_name(self):
-        _, state = step(make_game(), "höger")
-
-        self.assertEqual(
-            render_map(state).splitlines()[0],
-            "[start] [katt ] [  ?  ] [  ?  ] [  ?  ]",
-        )
-
-    def test_blocked_square_shows_after_an_attempt(self):
-        _, state = step(make_game((1, 1)), "höger")
-
-        self.assertIn("[  ■  ]", render_map(state).splitlines()[1])
-
-    def test_all_square_types_have_swedish_names_and_the_same_width(self):
-        state = make_game()
+    def discover_all(self, state):
         state.discovered = {
             (row, col) for row in range(len(GRID)) for col in range(len(GRID))
         }
 
-        lines = render_map(state).splitlines()[:len(GRID)]
+    def test_new_game_shows_only_the_cat_and_the_panel(self):
+        row = "│ ? │ ? │ ? │ ? │ ? │"
+        separator = "├───┼───┼───┼───┼───┤"
+        expected = [
+            "┌───┬───┬───┬───┬───┐",
+            "│ K │ ? │ ? │ ? │ ? │   CAT LOST",
+            separator,
+            f"{row}   Runda 1",
+            f"{separator}   Kaka: ingen",
+            row,
+            f"{separator}   K katten",
+            f"{row}   ? okänd",
+            f"{separator}   S start",
+            row,
+            "└───┴───┴───┴───┴───┘",
+        ]
 
-        for name in ["fri", "■", "fråga", "café", "häxa", "hem"]:
-            self.assertIn(name, "\n".join(lines))
-        for line in lines:
-            self.assertEqual(len(line), 39)
+        self.assertEqual(self.map_lines(make_game()), expected)
 
-    def test_inventory_is_shown(self):
+    def test_visited_square_shows_its_symbol(self):
+        _, state = step(make_game(), "höger")
+
+        self.assertTrue(self.map_lines(state)[1].startswith("│ S │ K │ ? │ ? │ ? │"))
+
+    def test_blocked_square_shows_after_an_attempt(self):
+        _, state = step(make_game((1, 1)), "höger")
+
+        self.assertIn("■", self.map_lines(state)[3])
+        self.assertIn("■ hus", "\n".join(self.map_lines(state)))
+
+    def test_cat_is_highlighted(self):
+        self.assertIn(f"{ANSI_BOLD}", render_map(make_game(), 1))
+
+    def test_legend_only_shows_discovered_squares(self):
+        legend = "\n".join(self.map_lines(make_game()))
+
+        for name in ["fri väg", "hus", "fråga", "café", "häxa", "hem"]:
+            self.assertNotIn(name, legend)
+
+    def test_all_square_types_fit_in_the_terminal(self):
+        state = make_game()
+        self.discover_all(state)
+        state.inventory = ["prinsesstårta"]
+
+        lines = self.map_lines(state, 100)
+
+        for entry in ["K katten", "? okänd", "S start", "· fri väg", "■ hus",
+                      "F fråga", "C café", "X häxa", "H hem"]:
+            self.assertIn(entry, "\n".join(lines))
+        self.assertEqual(len(lines), 11)
+        self.assertLessEqual(max(len(line) for line in lines), 80)
+        self.assertEqual({len(line[:21]) for line in lines}, {21})
+
+    def test_round_and_inventory_are_shown(self):
         state = make_game()
         state.inventory = ["äppelpaj"]
 
-        self.assertIn("Kaka: äppelpaj", render_map(state))
+        map_text = "\n".join(self.map_lines(state, 7))
+
+        self.assertIn("Runda 7", map_text)
+        self.assertIn("Kaka: äppelpaj", map_text)
+
+
+class FormatMessageTest(unittest.TestCase):
+    def test_commands_are_italic(self):
+        message = format_message(f"Text\n{COMMANDS_TEXT}")
+
+        self.assertIn(f"{ANSI_ITALIC}{COMMANDS_TEXT}{ANSI_RESET}", message)
+
+    def test_other_messages_are_bold(self):
+        self.assertEqual(format_message("Text"), f"{ANSI_BOLD}Text{ANSI_RESET}")
+
+    def test_long_text_wraps_and_keeps_all_words(self):
+        story = load_content().story
+
+        message = format_message(story["leave"])
+
+        self.assertEqual(unwrapped(message), story["leave"])
+        for line in plain(message).splitlines():
+            self.assertLessEqual(len(line), MESSAGE_WIDTH)
+
+    def test_every_screen_fits_a_24_line_terminal(self):
+        story = load_content().story
+        state = make_game()
+        self.discover_all_for_screen(state)
+        for outcome in Outcome:
+            with self.subTest(outcome=outcome):
+                state.current_question = max(
+                    load_content().questions, key=lambda question: len(question["question"])
+                )
+                state.cake_choices = CAKES
+                state.inventory = ["kanelbulle"]
+                message = format_message(message_for(outcome, state, story))
+
+                map_rows = 11
+                blank_row = 1
+                prompt_row = 1
+                rows = map_rows + blank_row + len(message.splitlines()) + prompt_row
+                self.assertLessEqual(rows, 24)
+
+    def discover_all_for_screen(self, state):
+        state.discovered = {
+            (row, col) for row in range(len(GRID)) for col in range(len(GRID))
+        }
 
 
 class TerminalTest(unittest.TestCase):
@@ -753,11 +840,11 @@ class TerminalTest(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(load_content().story["start_story"], result.stdout)
-        self.assertIn("Kaka: ingen", result.stdout)
+        self.assertIn(load_content().story["start_story"], unwrapped(result.stdout))
+        self.assertIn("Kaka: ingen", plain(result.stdout))
 
-    def test_map_and_cake_come_before_the_message_after_a_move(self):
-        moves = iter(["höger", "avsluta"])
+    def play_and_capture_screens(self, commands):
+        moves = iter(commands)
         output = io.StringIO()
         shown_before_input = []
 
@@ -767,10 +854,45 @@ class TerminalTest(unittest.TestCase):
 
         with mock.patch("builtins.input", read_input), contextlib.redirect_stdout(output):
             main()
+        return shown_before_input
 
+    def test_each_round_clears_the_screen_and_shows_map_before_message(self):
+        screens = self.play_and_capture_screens(["höger", "avsluta"])
+
+        round_two = screens[1].split(CLEAR_SCREEN)[-1]
         descriptions = load_content().story["free_descriptions"]
-        endings = [f"Kaka: ingen\n\n{description}\n" for description in descriptions]
-        self.assertTrue(shown_before_input[1].endswith(tuple(endings)), shown_before_input[1])
+
+        self.assertIn("Runda 2", plain(round_two))
+        self.assertLess(plain(round_two).index("Kaka: ingen"), plain(round_two).rindex("\n\n"))
+        self.assertTrue(unwrapped(round_two).endswith(tuple(descriptions)), round_two)
+
+    def test_round_number_counts_up(self):
+        screens = self.play_and_capture_screens(["höger", "hoppa", "avsluta"])
+
+        self.assertIn("Runda 3", plain(screens[2]))
+
+    def test_map_is_shown_during_a_question(self):
+        moves = iter(["höger", "avsluta"])
+        output = io.StringIO()
+        shown = []
+
+        def read_input(prompt):
+            shown.append(output.getvalue())
+            return next(moves)
+
+        def start_at_the_question(questions, rng):
+            state = new_game(questions, rng)
+            state.position = (1, 1)
+            return state
+
+        with (
+            mock.patch("cat_lost_game.new_game", start_at_the_question),
+            mock.patch("builtins.input", read_input),
+            contextlib.redirect_stdout(output),
+        ):
+            main()
+
+        self.assertIn("CAT LOST", plain(shown[1].split(CLEAR_SCREEN)[-1]))
 
     def test_whole_game_runs_through_the_terminal_loop(self):
         moves = iter(["höger"] * 4 + ["vänster"] * 3 + ["ner"] * 2 + ["höger", "höger", "ner", "höger"])
@@ -801,7 +923,8 @@ class TerminalTest(unittest.TestCase):
 
         story = load_content().story
         self.assertEqual(games[0].phase, Phase.WON)
-        self.assertLess(output.getvalue().index("<dans>"), output.getvalue().index(story["home"]))
+        printed = unwrapped(output.getvalue())
+        self.assertLess(printed.index("<dans>"), printed.index(story["home"]))
 
 
 class WinAnimationTest(unittest.TestCase):
@@ -877,7 +1000,7 @@ class PerformanceTest(unittest.TestCase):
 
         started = time.perf_counter()
         _, state = step(state, "höger")
-        render_map(state)
+        render_map(state, 2)
 
         self.assertLess(time.perf_counter() - started, 0.1)
 

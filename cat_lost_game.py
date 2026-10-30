@@ -2,9 +2,11 @@
 
 import json
 import random
+import textwrap
 import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from itertools import zip_longest
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
@@ -31,21 +33,33 @@ FAVORITE_CAKE = "äppelpaj"
 YES_ANSWER = "ja"
 NO_ANSWER = "nej"
 
-SQUARE_LABELS = {
-    "start": "start",
-    "free": "fri",
+SQUARE_SYMBOLS = {
+    "start": "S",
+    "free": "·",
     "blocked": "■",
+    "question": "F",
+    "fetch": "C",
+    "leave": "X",
+    "home": "H",
+}
+SQUARE_NAMES = {
+    "start": "start",
+    "free": "fri väg",
+    "blocked": "hus",
     "question": "fråga",
     "fetch": "café",
     "leave": "häxa",
     "home": "hem",
 }
-CAT_LABEL = "katt"
-UNKNOWN_LABEL = "?"
-SQUARE_WIDTH = 5
+CAT_SYMBOL = "K"
+UNKNOWN_SYMBOL = "?"
+GAME_TITLE = "CAT LOST"
+LEGEND_ROWS = 5
+LEGEND_COLUMN_WIDTH = 13
+MESSAGE_WIDTH = 72
 
 COMMANDS_TEXT = "Kommandon: upp, ner, vänster, höger, avsluta."
-INVALID_COMMAND_TEXT = f"Det kommandot finns inte. {COMMANDS_TEXT}"
+INVALID_COMMAND_TEXT = f"Det kommandot finns inte.\n{COMMANDS_TEXT}"
 INVALID_CHOICE_TEXT = "Svara med en av siffrorna:"
 INVALID_WITCH_ANSWER_TEXT = "Svara ja eller nej."
 CAKE_CHOSEN_TEXT = "Du tar med dig en {cake}."
@@ -54,6 +68,11 @@ QUIT_TEXT = "Hej då! Katten väntar på att du ska komma tillbaka."
 ANSI_YELLOW = "\033[33m"
 ANSI_ORANGE = "\033[38;5;208m"
 ANSI_RESET = "\033[0m"
+ANSI_BOLD = "\033[1m"
+ANSI_DIM = "\033[2m"
+ANSI_ITALIC = "\033[3m"
+ANSI_REVERSE = "\033[7m"
+CLEAR_SCREEN = "\033[2J\033[H"
 CAT_FRAMES = [
     (ANSI_YELLOW, "\n".join([
         r"  /\_/\     ",
@@ -328,25 +347,86 @@ def message_for(outcome, state, story):
             return QUIT_TEXT
 
 
-def square_label(state, position):
+def styled(style, text):
+    return f"{style}{text}{ANSI_RESET}"
+
+
+def format_line(line):
+    if not line:
+        return line
+    return styled(ANSI_ITALIC if line == COMMANDS_TEXT else ANSI_BOLD, line)
+
+
+def format_message(message):
+    lines = []
+    for paragraph in message.split("\n"):
+        lines.extend(textwrap.wrap(paragraph, MESSAGE_WIDTH) or [""])
+    return "\n".join(format_line(line) for line in lines)
+
+
+def square_cell(state, position):
     if position == state.position:
-        return CAT_LABEL
+        return styled(ANSI_BOLD + ANSI_REVERSE, f" {CAT_SYMBOL} ")
     if position in state.discovered:
         row, col = position
-        return SQUARE_LABELS[GRID[row][col]]
-    return UNKNOWN_LABEL
+        return f" {SQUARE_SYMBOLS[GRID[row][col]]} "
+    return styled(ANSI_DIM, f" {UNKNOWN_SYMBOL} ")
 
 
-def render_map(state):
-    lines = [
-        " ".join(
-            f"[{square_label(state, (row, col)):^{SQUARE_WIDTH}}]"
-            for col in range(GRID_SIZE)
-        )
-        for row in range(GRID_SIZE)
+def grid_border(left, middle, right):
+    return left + middle.join(["───"] * GRID_SIZE) + right
+
+
+def grid_lines(state):
+    lines = [grid_border("┌", "┬", "┐")]
+    for row in range(GRID_SIZE):
+        if row > 0:
+            lines.append(grid_border("├", "┼", "┤"))
+        cells = [square_cell(state, (row, col)) for col in range(GRID_SIZE)]
+        lines.append("│" + "│".join(cells) + "│")
+    lines.append(grid_border("└", "┴", "┘"))
+    return lines
+
+
+def legend_lines(state):
+    discovered_squares = {GRID[row][col] for row, col in state.discovered}
+    entries = [
+        f"{CAT_SYMBOL} katten",
+        f"{UNKNOWN_SYMBOL} okänd",
+        *(
+            f"{SQUARE_SYMBOLS[square]} {name}"
+            for square, name in SQUARE_NAMES.items()
+            if square in discovered_squares
+        ),
     ]
+    return [
+        f"{left:<{LEGEND_COLUMN_WIDTH}}{right}".rstrip()
+        for left, right in zip_longest(
+            entries[:LEGEND_ROWS], entries[LEGEND_ROWS:], fillvalue=""
+        )
+    ]
+
+
+def side_panel(state, round_number):
     cake = state.inventory[0] if state.inventory else "ingen"
-    return "\n".join([*lines, f"Kaka: {cake}"])
+    return [
+        "",
+        styled(ANSI_BOLD, GAME_TITLE),
+        "",
+        f"Runda {round_number}",
+        f"Kaka: {cake}",
+        "",
+        *legend_lines(state),
+    ]
+
+
+def render_map(state, round_number):
+    return "\n".join(
+        f"{grid_line}   {panel_line}".rstrip()
+        for grid_line, panel_line in zip_longest(
+            grid_lines(state), side_panel(state, round_number), fillvalue=""
+        )
+    )
 
 
 def play_win_animation():
@@ -370,17 +450,19 @@ def main():
     content = load_content()
     state = new_game(content.questions, random.Random())
     message = start_message(content.story)
+    round_number = 1
 
     while state.phase not in (Phase.WON, Phase.QUIT):
-        if state.phase == Phase.MOVE:
-            print(f"\n{render_map(state)}")
-        print(f"\n{message}")
-        outcome, state = step(state, input(PROMPTS[state.phase]))
+        print(f"{CLEAR_SCREEN}{render_map(state, round_number)}")
+        print(f"\n{format_message(message)}")
+        outcome, state = step(state, input(styled(ANSI_BOLD, PROMPTS[state.phase])))
         if outcome == Outcome.HOME:
+            print(CLEAR_SCREEN, end="")
             play_win_animation()
         message = message_for(outcome, state, content.story)
+        round_number += 1
 
-    print(f"\n{message}")
+    print(f"\n{format_message(message)}")
 
 
 if __name__ == "__main__":

@@ -165,23 +165,30 @@ Texterna finns i `cat_lost_story.json`:
 ```
 
 ## 10. Vad spelaren ser
-Kartan skrivs ut före varje drag:
-- Kattens plats är markerad.
+Varje runda rensar skärmen och visar en ramad karta med en sidopanel, följt av meddelandet och prompten. Kartan visas även under frågor, kakval och häxans fråga.
+- Kattens plats visas som `K` i fetstil och omvänd färg.
 - Innehållet i en ruta visas först när katten har besökt den eller försökt gå in på den, till exempel en `blocked`-ruta.
-- Rutor som inte har upptäckts visas som `?`.
-- Rutorna visas på svenska: `start`, `fri`, `fråga`, `café`, `häxa`, `hem`. Ett hus (`blocked`) visas som en fylld fyrkant: `■`.
-- Inventory visas tillsammans med kartan.
-- Alla rutor är 5 tecken breda.
-- Ordningen är karta, kaka, tom rad, meddelande och sist frågan om vart katten ska gå.
+- Rutor som inte har upptäckts visas som `?` med dämpad text.
+- Rutorna visas med symboler: `S` start, `·` fri väg, `■` hus, `F` fråga, `C` café, `X` häxa och `H` hem.
+- Sidopanelen visar spelets namn, rundans nummer, kakan och en förklaring av symbolerna. Förklaringen visar bara katten, `?` och de rutor som har upptäckts.
+- Rundans nummer räknas upp vid varje inmatning.
+- Meddelanden bryts vid 72 tecken och skrivs i fetstil. Raden `Kommandon: ...` skrivs i kursiv. Prompten skrivs i fetstil.
+- Tidigare rundor syns inte längre på skärmen.
+- En skärm får vara högst 24 rader och 80 tecken bred.
 
 Exempel:
 ```text
-[katt ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
-[  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
-[  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
-[  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
-[  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
-Kaka: ingen
+┌───┬───┬───┬───┬───┐
+│ S │ · │ K │ ? │ ? │   CAT LOST
+├───┼───┼───┼───┼───┤
+│ · │ · │ ■ │ ? │ ? │   Runda 8
+├───┼───┼───┼───┼───┤   Kaka: ingen
+│ ? │ ? │ ? │ ? │ ? │
+├───┼───┼───┼───┼───┤   K katten
+│ ? │ ? │ ? │ ? │ ? │   ? okänd
+├───┼───┼───┼───┼───┤   S start
+│ ? │ ? │ ? │ ? │ ? │   · fri väg
+└───┴───┴───┴───┴───┘   ■ hus
 
 En bil far förbi, sen är allt öde.
 Vart vill du gå? (upp/ner/vänster/höger/avsluta):
@@ -226,7 +233,8 @@ Testerna använder `unittest` och täcker följande:
 - [x] JSON-filen har minst 10 frågor, varje fråga har exakt 4 svarsalternativ och `answer` finns bland `choices`.
 - [x] En saknad eller ogiltig JSON-fil ger ett tydligt felmeddelande.
 - [x] Spelet startar och går att avsluta med `avsluta`, även under en fråga och ett kakval.
-- [x] Alla rutor på kartan är 5 tecken breda.
+- [x] Kartan har ram och sidopanel, förklaringen visar bara upptäckta rutor, och varje skärm ryms på 24 rader och 80 tecken.
+- [x] Varje runda rensar skärmen, och meddelanden bryts vid 72 tecken i fetstil med kommandoraden i kursiv.
 - [x] Kommandon fungerar oavsett stor eller liten bokstav och med mellanslag runt, inklusive `vänster` och `höger`.
 - [x] Frågor upprepas inte förrän alla har använts, och ett ogiltigt svar ger inget straff.
 - [x] När katten skickas tillbaka utlöser rutan inget nytt.
@@ -239,6 +247,7 @@ Testerna använder `unittest` och täcker följande:
 Kontrolleras för hand:
 - **Animeringen:** katten är gul/orange och dansar, pågår i cirka 3 sekunder och terminalens färger är normala efteråt.
 - **Provspelning:** en ny spelare spelar klart utan hjälp, och omgången tar cirka 3-5 minuter.
+- **Utskriften:** ramen är hel, fetstil, kursiv och dämpad text syns och går att läsa på både ljus och mörk bakgrund.
 - **Innehållet:** frågor och texter är familjevänliga och utan stavfel, och svarsalternativen i varje fråga är ungefär lika långa.
 
 ## 12. Version 2 (ska inte byggas nu)
