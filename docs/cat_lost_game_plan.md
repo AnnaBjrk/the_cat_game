@@ -29,7 +29,7 @@ Varje del börjar med tester och avslutas med en commit. Kryssrutan bockas av i 
 - [x] **1. Innehåll:** `cat_lost_story.json`, `cat_lost_questions.json` med minst 10 frågor och `load_content()`. Kraven på frågor och texter kontrolleras i testerna, inte när spelet startar. Frågorna skrivs med agenten `question-writer` och innehållet granskas med agenten `riddle-reviewer`.
 - [x] **2. Förflyttning:** karta, kommandon, väggar och kanter, upptäckta rutor och `avsluta`.
 - [x] **3. Frågor:** fasbyte, frågekö utan upprepning och att fel svar skickar tillbaka katten.
-- [ ] **4. Café och häxa:** kakval, inventory och `leave`. Hela vägen hem spelas i ett test.
+- [x] **4. Café och häxa:** kakval, inventory och `leave`. Hela vägen hem spelas i ett test.
 - [ ] **5. Text och karta:** `message_for()` och `render_map()`.
 - [ ] **6. Terminal:** spelloopen och vinstanimeringen. `.claude/commands/smoke-test.md` skrivs om så att den startar spelet och kör `avsluta`.
 - [ ] **7. Avslut:** prestandatester, kontroll av specens "Klart när", provspelning för hand och den nya filen i `CLAUDE.md`.

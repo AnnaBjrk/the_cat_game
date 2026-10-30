@@ -19,8 +19,14 @@ GRID = [
 ]
 GRID_SIZE = len(GRID)
 START_POSITION = (0, 0)
+FETCH_POSITION = (0, 4)
+LEAVE_POSITION = (3, 3)
+HOME_POSITION = (3, 4)
 BLOCKED_SQUARE = "blocked"
 QUESTION_SQUARE = "question"
+
+CAKES = ["kanelbulle", "chokladboll", "prinsesstårta", "morotskaka", "äppelpaj"]
+FAVORITE_CAKE = "äppelpaj"
 
 QUIT_COMMAND = "avsluta"
 DIRECTIONS = {
@@ -34,6 +40,8 @@ DIRECTIONS = {
 class Phase(Enum):
     MOVE = auto()
     ANSWER_QUESTION = auto()
+    CHOOSE_CAKE = auto()
+    WON = auto()
     QUIT = auto()
 
 
@@ -45,6 +53,13 @@ class Outcome(Enum):
     CORRECT_ANSWER = auto()
     WRONG_ANSWER = auto()
     INVALID_ANSWER = auto()
+    CAKE_CHOICE = auto()
+    CAKE_CHOSEN = auto()
+    INVALID_CAKE_CHOICE = auto()
+    WITCH_CORRECT = auto()
+    WITCH_WRONG = auto()
+    WITCH_NO_CAKE = auto()
+    HOME = auto()
     QUIT = auto()
 
 
@@ -81,6 +96,9 @@ class GameState:
     phase: Phase = Phase.MOVE
     question_queue: list[dict] = field(default_factory=list)
     current_question: dict | None = None
+    inventory: list[str] = field(default_factory=list)
+    cake_choices: list[str] = field(default_factory=list)
+    witch_has_cake: bool = False
 
 
 def new_game(questions, rng):
@@ -97,12 +115,19 @@ def ask_question(state):
     return Outcome.QUESTION
 
 
+def chosen_option(options, player_input):
+    numbers = [str(number) for number in range(1, len(options) + 1)]
+    if player_input in numbers:
+        return options[int(player_input) - 1]
+    return None
+
+
 def answer_question(state, answer):
-    choices = state.current_question["choices"]
-    if answer not in [str(number) for number in range(1, len(choices) + 1)]:
+    choice = chosen_option(state.current_question["choices"], answer)
+    if choice is None:
         return Outcome.INVALID_ANSWER
 
-    is_correct = choices[int(answer) - 1] == state.current_question["answer"]
+    is_correct = choice == state.current_question["answer"]
     state.current_question = None
     state.phase = Phase.MOVE
     if is_correct:
@@ -110,6 +135,35 @@ def answer_question(state, answer):
 
     state.position = state.previous_position
     return Outcome.WRONG_ANSWER
+
+
+def offer_cakes(state):
+    state.cake_choices = [cake for cake in CAKES if cake not in state.inventory]
+    state.phase = Phase.CHOOSE_CAKE
+    return Outcome.CAKE_CHOICE
+
+
+def choose_cake(state, player_input):
+    cake = chosen_option(state.cake_choices, player_input)
+    if cake is None:
+        return Outcome.INVALID_CAKE_CHOICE
+
+    state.inventory = [cake]
+    state.phase = Phase.MOVE
+    return Outcome.CAKE_CHOSEN
+
+
+def meet_witch(state):
+    if state.witch_has_cake:
+        return Outcome.MOVED
+    if FAVORITE_CAKE in state.inventory:
+        state.inventory = []
+        state.witch_has_cake = True
+        return Outcome.WITCH_CORRECT
+
+    outcome = Outcome.WITCH_WRONG if state.inventory else Outcome.WITCH_NO_CAKE
+    state.position = START_POSITION
+    return outcome
 
 
 def move(state, direction):
@@ -126,6 +180,13 @@ def move(state, direction):
     state.position = (row, col)
     if GRID[row][col] == QUESTION_SQUARE:
         return ask_question(state)
+    if state.position == FETCH_POSITION:
+        return offer_cakes(state)
+    if state.position == LEAVE_POSITION:
+        return meet_witch(state)
+    if state.position == HOME_POSITION:
+        state.phase = Phase.WON
+        return Outcome.HOME
     return Outcome.MOVED
 
 
@@ -136,6 +197,8 @@ def step(state, player_input):
         return Outcome.QUIT, state
     if state.phase == Phase.ANSWER_QUESTION:
         return answer_question(state, command), state
+    if state.phase == Phase.CHOOSE_CAKE:
+        return choose_cake(state, command), state
     if command not in DIRECTIONS:
         return Outcome.INVALID_COMMAND, state
     return move(state, DIRECTIONS[command]), state

@@ -5,7 +5,14 @@ import unittest
 from pathlib import Path
 
 from cat_lost_game import (
+    CAKES,
+    FAVORITE_CAKE,
+    FETCH_POSITION,
+    HOME_POSITION,
+    LEAVE_POSITION,
+    START_POSITION,
     ContentError,
+    GRID,
     Outcome,
     Phase,
     load_content,
@@ -61,6 +68,23 @@ def correct_answer(state):
 def wrong_answer(state):
     question = state.current_question
     return str((question["choices"].index(question["answer"]) + 1) % 4 + 1)
+
+
+def choose_cake(state, cake):
+    return step(state, str(state.cake_choices.index(cake) + 1))
+
+
+def enter_fetch(inventory=()):
+    state = make_game((0, 3))
+    state.inventory = list(inventory)
+    _, state = step(state, "höger")
+    return state
+
+
+def enter_leave(inventory=()):
+    state = make_game((2, 3))
+    state.inventory = list(inventory)
+    return step(state, "ner")
 
 
 class ContentFilesTest(unittest.TestCase):
@@ -308,6 +332,144 @@ class QuestionTest(unittest.TestCase):
 
         self.assertEqual(outcome, Outcome.MOVED)
         self.assertEqual(state.position, (3, 0))
+
+
+class FetchTest(unittest.TestCase):
+    def test_entering_fetch_without_cake_offers_all_cakes(self):
+        outcome, state = step(make_game((0, 3)), "höger")
+
+        self.assertEqual(outcome, Outcome.CAKE_CHOICE)
+        self.assertEqual(state.phase, Phase.CHOOSE_CAKE)
+        self.assertEqual(state.cake_choices, CAKES)
+
+    def test_entering_fetch_with_cake_offers_the_other_four(self):
+        state = enter_fetch(["kanelbulle"])
+
+        self.assertEqual(len(state.cake_choices), 4)
+        self.assertNotIn("kanelbulle", state.cake_choices)
+
+    def test_choosing_a_cake_fills_the_inventory(self):
+        state = enter_fetch()
+
+        outcome, state = choose_cake(state, "morotskaka")
+
+        self.assertEqual(outcome, Outcome.CAKE_CHOSEN)
+        self.assertEqual(state.inventory, ["morotskaka"])
+        self.assertEqual(state.position, FETCH_POSITION)
+        self.assertEqual(state.phase, Phase.MOVE)
+
+    def test_choosing_a_new_cake_returns_the_old_one(self):
+        state = enter_fetch(["kanelbulle"])
+
+        _, state = choose_cake(state, "chokladboll")
+
+        self.assertEqual(state.inventory, ["chokladboll"])
+
+    def test_invalid_choice_asks_again(self):
+        state = enter_fetch()
+
+        for choice in ["0", "6", "hej", "", "upp"]:
+            with self.subTest(choice=choice):
+                outcome, state = step(state, choice)
+
+                self.assertEqual(outcome, Outcome.INVALID_CAKE_CHOICE)
+                self.assertEqual(state.phase, Phase.CHOOSE_CAKE)
+                self.assertEqual(state.inventory, [])
+
+    def test_cat_with_favorite_cake_must_swap_and_can_fetch_it_again(self):
+        state = enter_fetch([FAVORITE_CAKE])
+        self.assertNotIn(FAVORITE_CAKE, state.cake_choices)
+
+        _, state = choose_cake(state, "kanelbulle")
+        _, state = step(state, "vänster")
+        _, state = step(state, "höger")
+        _, state = choose_cake(state, FAVORITE_CAKE)
+
+        self.assertEqual(state.inventory, [FAVORITE_CAKE])
+
+    def test_quit_works_during_a_cake_choice(self):
+        outcome, state = step(enter_fetch(), "avsluta")
+
+        self.assertEqual(outcome, Outcome.QUIT)
+        self.assertEqual(state.phase, Phase.QUIT)
+
+
+class WitchTest(unittest.TestCase):
+    def test_favorite_cake_opens_the_way(self):
+        outcome, state = enter_leave([FAVORITE_CAKE])
+
+        self.assertEqual(outcome, Outcome.WITCH_CORRECT)
+        self.assertEqual(state.position, LEAVE_POSITION)
+        self.assertEqual(state.inventory, [])
+        self.assertTrue(state.witch_has_cake)
+
+    def test_wrong_cake_sends_the_cat_to_start_with_the_cake(self):
+        outcome, state = enter_leave(["kanelbulle"])
+
+        self.assertEqual(outcome, Outcome.WITCH_WRONG)
+        self.assertEqual(state.position, START_POSITION)
+        self.assertEqual(state.inventory, ["kanelbulle"])
+        self.assertFalse(state.witch_has_cake)
+
+    def test_no_cake_sends_the_cat_to_start(self):
+        outcome, state = enter_leave()
+
+        self.assertEqual(outcome, Outcome.WITCH_NO_CAKE)
+        self.assertEqual(state.position, START_POSITION)
+
+    def test_leave_works_as_free_after_the_witch_has_her_cake(self):
+        _, state = enter_leave([FAVORITE_CAKE])
+        _, state = step(state, "upp")
+
+        outcome, state = step(state, "ner")
+
+        self.assertEqual(outcome, Outcome.MOVED)
+        self.assertEqual(state.position, LEAVE_POSITION)
+
+
+class HomeTest(unittest.TestCase):
+    def test_home_wins_the_game(self):
+        _, state = enter_leave([FAVORITE_CAKE])
+
+        outcome, state = step(state, "höger")
+
+        self.assertEqual(outcome, Outcome.HOME)
+        self.assertEqual(state.position, HOME_POSITION)
+        self.assertEqual(state.phase, Phase.WON)
+
+    def test_home_can_only_be_reached_through_leave(self):
+        seen = {START_POSITION}
+        to_visit = [START_POSITION]
+        while to_visit:
+            row, col = to_visit.pop()
+            for next_row, next_col in [(row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1)]:
+                position = (next_row, next_col)
+                on_map = 0 <= next_row < len(GRID) and 0 <= next_col < len(GRID)
+                if on_map and position not in seen and position != LEAVE_POSITION and GRID[next_row][next_col] != "blocked":
+                    seen.add(position)
+                    to_visit.append(position)
+
+        self.assertNotIn(HOME_POSITION, seen)
+
+    def test_whole_way_home_can_be_played_without_a_terminal(self):
+        state = make_game()
+        for command in ["höger", "höger", "höger", "höger"]:
+            _, state = step(state, command)
+        self.assertEqual(state.position, FETCH_POSITION)
+
+        _, state = choose_cake(state, FAVORITE_CAKE)
+        for command in ["vänster", "vänster", "vänster", "ner", "ner"]:
+            _, state = step(state, command)
+        self.assertEqual(state.position, (2, 1))
+
+        _, state = step(state, correct_answer(state))
+        for command in ["höger", "höger", "ner"]:
+            outcome, state = step(state, command)
+        self.assertEqual(outcome, Outcome.WITCH_CORRECT)
+
+        outcome, state = step(state, "höger")
+        self.assertEqual(outcome, Outcome.HOME)
+        self.assertEqual(state.phase, Phase.WON)
 
 
 if __name__ == "__main__":
