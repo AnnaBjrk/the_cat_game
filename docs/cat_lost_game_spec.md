@@ -188,8 +188,8 @@ När katten når `home` dansar en gul/orange ASCII-katt i terminalen.
 - Spellogiken tar emot spelarens val och returnerar resultatet och spelets tillstånd. Bara terminalgränssnittet läser in och skriver ut.
 - Ingen startkod på toppnivå: spelet startar bara under `if __name__ == "__main__":`.
 - Slumpen ska gå att styra i tester.
-- Importera inte från `game.py`, eftersom den startar Phoenix och ADK när den importeras.
-- Filerna under `skills/` och `game.py` ändras inte.
+- Importera inte från `arkiv/game.py`, eftersom den startar Phoenix och ADK när den importeras.
+- Filerna under `arkiv/` ändras inte.
 - Lättläst kod går före defensiv kod. Inga fallbacks: om något går sönder ska spelet stoppa med ett tydligt felmeddelande.
 - Hårdkoda aldrig ett värde för att komma runt ett problem. Åtgärda orsaken.
 - Spelets regler, som kartan och att `äppelpaj` är rätt kaka, är tillåtna värden i koden. De ska vara namngivna konstanter.
@@ -244,7 +244,7 @@ Gränser för AI:n:
 - Frågor, svar och uppgifter är desamma och kommer från samma källor.
 - AI:n får inte avslöja rutor som spelaren inte har upptäckt.
 - Texten ska vara familjevänlig, även med stämningen "läskigt".
-- Spelet använder ADK, som `game.py`.
+- Spelet använder ADK, som `arkiv/game.py`.
 - Från och med version 2 spåras spelet med Phoenix. Spårningen behålls i version 3.
 
 Prestanda:

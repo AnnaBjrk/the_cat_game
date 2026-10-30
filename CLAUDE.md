@@ -1,20 +1,25 @@
-# Cat Goes Home
+# Cat Lost
 
-A riddle game: the player helps a cat get home by answering a riddle at each obstacle (river, fence, busy street). Built with Google ADK and traced with Arize Phoenix.
+The main game, under construction: the player guides a lost cat home across a 5x5 grid, answering questions and bringing the witch her favourite cake. Version 1 is plain Python with no AI. See `docs/` for the spec and build plan.
+
+The earlier game, Cat Goes Home, is archived in `arkiv/`. It is a riddle game built with Google ADK and traced with Arize Phoenix.
 
 ## Layout
 
-- `game.py`: self-contained game loop that reads riddles from `skills/`
-- `main.py`: CLI runner for the ADK workflow agent
-- `cat_goes_home/agent.py`: the ADK workflow (`root_agent`)
-- `skills/`: game content used by the ADK agents. These are not Claude Code skills, which live in `.claude/skills/`.
-- `docs/`: spec and build plan for Cat Lost, the next game. Read both before working on it.
+- `docs/`: spec and build plan for Cat Lost. Read both before working on it.
+- `arkiv/`: the archived Cat Goes Home game
+- `arkiv/game.py`: self-contained game loop that reads riddles from `arkiv/skills/`
+- `arkiv/main.py`: CLI runner for the ADK workflow agent
+- `arkiv/cat_goes_home/agent.py`: the ADK workflow (`root_agent`)
+- `arkiv/skills/`: game content used by the ADK agents. These are not Claude Code skills, which live in `.claude/skills/`.
 
 ## Commands
 
+These commands run the archived game. Cat Lost version 1 needs no installed packages.
+
 - Install: `pip install -r requirements.txt`
-- Play the game: `python game.py`
-- Run the ADK agent: `python main.py` or `adk web .`
+- Play the archived game: `python arkiv/game.py`
+- Run the ADK agent: `python arkiv/main.py` or `adk web arkiv`
 - Start tracing: `phoenix serve`, then open http://localhost:6006
 
 ## Conventions

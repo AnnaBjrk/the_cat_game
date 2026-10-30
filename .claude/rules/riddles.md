@@ -1,6 +1,6 @@
 ---
 paths:
-  - "skills/**/riddles.txt"
+  - "arkiv/skills/**/riddles.txt"
 ---
 
 # Riddle format

@@ -4,7 +4,7 @@ Local CLI runner for the Cat Goes Home ADK agent.
 The agent itself lives in cat_goes_home/agent.py, following the standard ADK
 project layout so it can also be launched with the ADK dev tooling:
 
-    adk web .          # dev UI, run from the_cat_game/ (auto-discovers
+    adk web .          # dev UI, run from arkiv/ (auto-discovers
                         # any subfolder with an __init__.py + root_agent)
     adk run cat_goes_home
 

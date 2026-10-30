@@ -35,5 +35,5 @@ Varje del börjar med tester och avslutas med en commit. Kryssrutan bockas av i 
 - [ ] **7. Avslut:** prestandatester, kontroll av specens "Klart när", provspelning för hand och den nya filen i `CLAUDE.md`.
 
 ## Att tänka på
-- Agenten `riddle-reviewer` läser bara `skills/*/references/riddles.txt`. Frågorna i `cat_lost_questions.json` granskas i stället mot specens krav och kontrolleras för hand.
-- `game.py` startar Phoenix och ADK när den importeras, så `cat_lost_game.py` får inte importera från den.
+- Agenten `riddle-reviewer` läser bara `arkiv/skills/*/references/riddles.txt`. Frågorna i `cat_lost_questions.json` granskas i stället mot specens krav och kontrolleras för hand.
+- `arkiv/game.py` startar Phoenix och ADK när den importeras, så `cat_lost_game.py` får inte importera från den.
