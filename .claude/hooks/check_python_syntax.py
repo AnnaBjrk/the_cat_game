@@ -1,4 +1,4 @@
-"""PostToolUse hook: report syntax errors in a Python file Claude just changed."""
+"""PostToolUse hook: report syntax errors in a Python or JSON file Claude just changed."""
 
 import json
 import sys
@@ -13,3 +13,10 @@ if path.suffix == ".py" and path.exists():
     except SyntaxError as error:
         print(f"Syntax error in {file_path}: {error}", file=sys.stderr)
         sys.exit(2)  # Exit code 2 sends the message back to Claude.
+
+if path.suffix == ".json" and path.exists():
+    try:
+        json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        print(f"Invalid JSON in {file_path}: {error}", file=sys.stderr)
+        sys.exit(2)
