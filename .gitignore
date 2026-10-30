@@ -6,3 +6,5 @@ __pycache__
 # Claude Code personal files
 CLAUDE.local.md
 .claude/settings.local.json
+
+.DS_Store

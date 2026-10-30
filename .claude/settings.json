@@ -3,10 +3,12 @@
     "allow": [
       "Bash(git status)",
       "Bash(git diff *)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(python3 -m unittest*)"
     ],
     "deny": [
-      "Read(./**/.env)"
+      "Read(./**/.env)",
+      "Edit(./arkiv/**)"
     ]
   },
   "hooks": {
@@ -16,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/check_python_syntax.py\""
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/check_python_json_syntax.py\""
           }
         ]
       }
