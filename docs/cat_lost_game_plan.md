@@ -24,16 +24,15 @@ JSON-filer → load_content() → Regler → Text → Terminal
 - **Slump:** `new_game()` tar emot en `random.Random`, så att testerna kan styra slumpen med ett eget frö.
 
 ## Byggordning
-Varje del börjar med tester och avslutas med en commit. Kryssrutan bockas av i samma commit. Testerna körs med `python -m unittest`.
+Varje del börjar med tester och avslutas med en commit. Kryssrutan bockas av i samma commit. Testerna körs med `python3 -m unittest`.
 
-- [ ] **1. Innehåll:** `cat_lost_story.json`, `cat_lost_questions.json` med minst 10 frågor och `load_content()` med validering.
+- [ ] **1. Innehåll:** `cat_lost_story.json`, `cat_lost_questions.json` med minst 10 frågor och `load_content()` med validering. Innehållet granskas med agenten `riddle-reviewer`.
 - [ ] **2. Förflyttning:** karta, kommandon, väggar och kanter, upptäckta rutor och `avsluta`.
 - [ ] **3. Frågor:** fasbyte, frågekö utan upprepning och att fel svar skickar tillbaka katten.
 - [ ] **4. Café och häxa:** kakval, inventory och `leave`. Hela vägen hem spelas i ett test.
 - [ ] **5. Text och karta:** `message_for()` och `render_map()`.
-- [ ] **6. Terminal:** spelloopen och vinstanimeringen.
+- [ ] **6. Terminal:** spelloopen och vinstanimeringen. `.claude/commands/smoke-test.md` skrivs om så att den startar spelet och kör `avsluta`.
 - [ ] **7. Avslut:** prestandatester, kontroll av specens "Klart när", provspelning för hand och den nya filen i `CLAUDE.md`.
 
 ## Att tänka på
-- Agenten `riddle-reviewer` läser bara `arkiv/skills/*/references/riddles.txt`. Frågorna i `cat_lost_questions.json` granskas i stället mot specens krav och kontrolleras för hand.
 - `arkiv/game.py` startar Phoenix och ADK när den importeras, så `cat_lost_game.py` får inte importera från den.

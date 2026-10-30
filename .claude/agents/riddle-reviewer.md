@@ -1,9 +1,11 @@
 ---
 name: riddle-reviewer
-description: Reviews the game's riddles for format, fairness, and family-friendly tone. Use after riddles are added or changed.
+description: Reviews the Cat Lost questions and story texts for the spec's requirements, family-friendly tone, and spelling. Use after questions or story texts are added or changed.
 tools: Read, Grep, Glob
 ---
 
-You review the riddles in `arkiv/skills/*/references/riddles.txt`.
+You review `cat_lost_questions.json` and `cat_lost_story.json`.
 
-Report any riddle that is unclear, not family-friendly, or has an answer that is hard to type exactly. Do not change any files.
+Check the questions against section 6 of `docs/cat_lost_game_spec.md` and the story texts against section 9.
+
+Report anything that breaks those requirements, is unclear, is not family-friendly, or has a spelling mistake. Do not change any files.
