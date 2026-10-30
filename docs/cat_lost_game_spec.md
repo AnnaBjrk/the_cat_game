@@ -90,6 +90,8 @@ Viktiga positioner:
 
 Krav på filen: minst 10 frågor på svenska, familjevänligt innehåll, och `answer` måste finnas bland `choices`.
 
+Svarsalternativen i en fråga ska vara ungefär lika långa, så att längden inte avslöjar rätt svar. Har ett alternativ ett förtydligande eller exempel ska de andra också ha det. Skriv till exempel "Hund", "Katt", "Ko", "Anka", inte "Hund", "Katt, ett litet rovdjur", "Ko", "Anka".
+
 ## 7. Fetch och inventory
 - Kakor: `kanelbulle`, `chokladboll`, `prinsesstårta`, `morotskaka`, `äppelpaj`.
 - Inventory är en lista som rymmer högst **en** kaka.
@@ -211,7 +213,7 @@ Testerna använder `unittest` och täcker följande:
 - [ ] `home` kan inte nås utan att häxan har fått sin kaka.
 - [ ] Varje typ av resultat ger rätt text, och berättelsen på `start` visas bara när spelet startar.
 - [ ] Rutor visas först efter besök eller försök att gå in.
-- [ ] Alla frågor i JSON-filen uppfyller kraven i avsnitt 6.
+- [ ] JSON-filen har minst 10 frågor, varje fråga har exakt 4 svarsalternativ och `answer` finns bland `choices`.
 - [ ] En saknad eller ogiltig JSON-fil ger ett tydligt felmeddelande.
 - [ ] Spelet startar och går att avsluta med `avsluta`, även under en fråga och ett kakval.
 - [ ] Alla rutor på kartan är 5 tecken breda.
@@ -227,7 +229,7 @@ Testerna använder `unittest` och täcker följande:
 Kontrolleras för hand:
 - **Animeringen:** katten är gul/orange och dansar, pågår i cirka 3 sekunder och terminalens färger är normala efteråt.
 - **Provspelning:** en ny spelare spelar klart utan hjälp, och omgången tar cirka 3-5 minuter.
-- **Innehållet:** frågor och texter är familjevänliga och utan stavfel.
+- **Innehållet:** frågor och texter är familjevänliga och utan stavfel, och svarsalternativen i varje fråga är ungefär lika långa.
 
 ## 12. Version 2 (ska inte byggas nu)
 Spelaren väljer tre saker när spelet startar:
