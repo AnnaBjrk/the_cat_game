@@ -14,6 +14,8 @@
   "question_intro": "En gammal katt på en mur spärrar vägen. Svara rätt, säger den, så får du gå vidare.",
   "question_correct": "Rätt! Den gamla katten nickar och flyttar på sig.",
   "question_wrong": "Fel! Den gamla katten fräser och du får gå tillbaka.",
+  "witch_offer": "Vill du ge häxan din {cake}? (ja/nej)",
+  "witch_declined": "Du behåller kakan och backar undan. Jag väntar här, ropar häxan efter dig.",
   "witch_correct": "Mmm, äppelpaj! Häxan smaskar nöjt och försvinner in bakom busken. Vägen hem är fri.",
   "witch_wrong": "Fy, den kakan tycker jag inte om! Häxan viftar med handen och allt blir dimmigt. Du vaknar på parkeringen igen.",
   "witch_no_cake": "Har du ingen kaka med dig? Häxan viftar med handen och allt blir dimmigt. Du vaknar på parkeringen igen.",

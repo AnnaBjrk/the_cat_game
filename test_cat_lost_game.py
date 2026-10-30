@@ -45,6 +45,8 @@ STORY_KEYS = (
     "question_intro",
     "question_correct",
     "question_wrong",
+    "witch_offer",
+    "witch_declined",
     "witch_correct",
     "witch_wrong",
     "witch_no_cake",
@@ -99,6 +101,11 @@ def enter_leave(inventory=()):
     state = make_game((2, 3))
     state.inventory = list(inventory)
     return step(state, "ner")
+
+
+def give_cake_to_witch(inventory):
+    _, state = enter_leave(inventory)
+    return step(state, "ja")
 
 
 class ContentFilesTest(unittest.TestCase):
@@ -187,7 +194,7 @@ class MovementTest(unittest.TestCase):
                 self.assertEqual(state.discovered, {(0, 0)})
 
     def test_edge_of_map_stops_the_cat_at_the_far_side(self):
-        for position, command in [((4, 1), "ner"), ((1, 4), "höger")]:
+        for position, command in [((4, 1), "ner"), ((0, 4), "höger")]:
             with self.subTest(command=command):
                 outcome, state = step(make_game(position), command)
 
@@ -409,18 +416,68 @@ class FetchTest(unittest.TestCase):
 
 
 class WitchTest(unittest.TestCase):
+    def test_witch_asks_about_any_cake(self):
+        for cake in [FAVORITE_CAKE, "kanelbulle"]:
+            with self.subTest(cake=cake):
+                outcome, state = enter_leave([cake])
+
+                self.assertEqual(outcome, Outcome.WITCH_OFFER)
+                self.assertEqual(state.phase, Phase.OFFER_CAKE)
+                self.assertEqual(state.position, LEAVE_POSITION)
+                self.assertEqual(state.inventory, [cake])
+
+    def test_answering_no_sends_the_cat_back_with_the_cake(self):
+        _, state = enter_leave([FAVORITE_CAKE])
+
+        outcome, state = step(state, " NEJ ")
+
+        self.assertEqual(outcome, Outcome.WITCH_DECLINED)
+        self.assertEqual(state.position, (2, 3))
+        self.assertEqual(state.inventory, [FAVORITE_CAKE])
+        self.assertEqual(state.phase, Phase.MOVE)
+        self.assertFalse(state.witch_has_cake)
+
+    def test_witch_asks_again_after_answering_no(self):
+        _, state = enter_leave([FAVORITE_CAKE])
+        _, state = step(state, "nej")
+
+        outcome, state = step(state, "ner")
+
+        self.assertEqual(outcome, Outcome.WITCH_OFFER)
+
+    def test_invalid_answer_asks_again(self):
+        _, state = enter_leave([FAVORITE_CAKE])
+
+        for answer in ["1", "kanske", "", "höger"]:
+            with self.subTest(answer=answer):
+                outcome, state = step(state, answer)
+
+                self.assertEqual(outcome, Outcome.INVALID_WITCH_ANSWER)
+                self.assertEqual(state.phase, Phase.OFFER_CAKE)
+                self.assertEqual(state.inventory, [FAVORITE_CAKE])
+
+    def test_quit_works_during_the_witch_question(self):
+        _, state = enter_leave([FAVORITE_CAKE])
+
+        outcome, state = step(state, "avsluta")
+
+        self.assertEqual(outcome, Outcome.QUIT)
+        self.assertEqual(state.phase, Phase.QUIT)
+
     def test_favorite_cake_opens_the_way(self):
-        outcome, state = enter_leave([FAVORITE_CAKE])
+        outcome, state = give_cake_to_witch([FAVORITE_CAKE])
 
         self.assertEqual(outcome, Outcome.WITCH_CORRECT)
         self.assertEqual(state.position, LEAVE_POSITION)
         self.assertEqual(state.inventory, [])
+        self.assertEqual(state.phase, Phase.MOVE)
         self.assertTrue(state.witch_has_cake)
 
     def test_wrong_cake_sends_the_cat_to_start_with_the_cake(self):
-        outcome, state = enter_leave(["kanelbulle"])
+        outcome, state = give_cake_to_witch(["kanelbulle"])
 
         self.assertEqual(outcome, Outcome.WITCH_WRONG)
+        self.assertEqual(state.phase, Phase.MOVE)
         self.assertEqual(state.position, START_POSITION)
         self.assertEqual(state.inventory, ["kanelbulle"])
         self.assertFalse(state.witch_has_cake)
@@ -432,7 +489,7 @@ class WitchTest(unittest.TestCase):
         self.assertEqual(state.position, START_POSITION)
 
     def test_leave_works_as_free_after_the_witch_has_her_cake(self):
-        _, state = enter_leave([FAVORITE_CAKE])
+        _, state = give_cake_to_witch([FAVORITE_CAKE])
         _, state = step(state, "upp")
 
         outcome, state = step(state, "ner")
@@ -443,7 +500,7 @@ class WitchTest(unittest.TestCase):
 
 class HomeTest(unittest.TestCase):
     def test_home_wins_the_game(self):
-        _, state = enter_leave([FAVORITE_CAKE])
+        _, state = give_cake_to_witch([FAVORITE_CAKE])
 
         outcome, state = step(state, "höger")
 
@@ -479,6 +536,9 @@ class HomeTest(unittest.TestCase):
         _, state = step(state, correct_answer(state))
         for command in ["höger", "höger", "ner"]:
             outcome, state = step(state, command)
+        self.assertEqual(outcome, Outcome.WITCH_OFFER)
+
+        outcome, state = step(state, "ja")
         self.assertEqual(outcome, Outcome.WITCH_CORRECT)
 
         outcome, state = step(state, "höger")
@@ -519,7 +579,7 @@ class MessageTest(unittest.TestCase):
         self.assertIn(message, make_marked_story()["free_descriptions"])
 
     def test_opened_leave_gives_a_free_description(self):
-        _, state = enter_leave([FAVORITE_CAKE])
+        _, state = give_cake_to_witch([FAVORITE_CAKE])
         _, state = step(state, "upp")
 
         message = self.message_after(state, "ner")
@@ -571,10 +631,9 @@ class MessageTest(unittest.TestCase):
 
         self.assertIn("morotskaka", message)
 
-    def test_witch_gives_leave_text_followed_by_the_result(self):
+    def test_witch_gives_leave_text_followed_by_the_offer_or_no_cake_text(self):
         for inventory, expected in [
-            ([FAVORITE_CAKE], "<witch_correct>"),
-            (["kanelbulle"], "<witch_wrong>"),
+            (["kanelbulle"], "<witch_offer>"),
             ([], "<witch_no_cake>"),
         ]:
             with self.subTest(inventory=inventory):
@@ -584,8 +643,34 @@ class MessageTest(unittest.TestCase):
 
                 self.assertLess(message.index("<leave>"), message.index(expected))
 
+    def test_witch_offer_names_the_cake_in_the_real_story(self):
+        outcome, state = enter_leave(["kanelbulle"])
+
+        message = message_for(outcome, state, load_content().story)
+
+        self.assertIn("kanelbulle", message)
+
+    def test_answers_to_the_witch_give_the_right_text(self):
+        for inventory, answer, expected in [
+            ([FAVORITE_CAKE], "ja", "<witch_correct>"),
+            (["kanelbulle"], "ja", "<witch_wrong>"),
+            ([FAVORITE_CAKE], "nej", "<witch_declined>"),
+        ]:
+            with self.subTest(inventory=inventory, answer=answer):
+                _, state = enter_leave(inventory)
+
+                self.assertEqual(self.message_after(state, answer), expected)
+
+    def test_invalid_witch_answer_repeats_the_offer(self):
+        _, state = enter_leave(["kanelbulle"])
+
+        message = self.message_after(state, "kanske")
+
+        self.assertIn("<witch_offer>", message)
+        self.assertNotIn("<leave>", message)
+
     def test_home_gives_the_home_text(self):
-        _, state = enter_leave([FAVORITE_CAKE])
+        _, state = give_cake_to_witch([FAVORITE_CAKE])
 
         self.assertEqual(self.message_after(state, "höger"), "<home>")
 
@@ -677,6 +762,8 @@ class TerminalTest(unittest.TestCase):
                 return correct_answer(state)
             if state.phase == Phase.CHOOSE_CAKE:
                 return str(state.cake_choices.index(FAVORITE_CAKE) + 1)
+            if state.phase == Phase.OFFER_CAKE:
+                return "ja"
             return next(moves)
 
         output = io.StringIO()

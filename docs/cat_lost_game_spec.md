@@ -33,7 +33,7 @@ Spelplanen är en lista av listor. Varje inre lista är en rad och positioner sk
 ```python
 GRID = [
     ["start",    "free",     "free",    "free",    "fetch"],
-    ["free",     "free",     "blocked", "blocked", "free"],
+    ["free",     "free",     "blocked", "blocked", "blocked"],
     ["free",     "question", "free",    "free",    "blocked"],
     ["free",     "blocked",  "blocked", "leave",   "home"],
     ["question", "free",     "free",    "blocked", "blocked"],
@@ -105,13 +105,14 @@ Svarsalternativen i en fråga ska vara ungefär lika långa, så att längden in
 **Följd av reglerna:** en katt som bär `äppelpaj` och går in på `fetch` igen tvingas byta bort den. Spelaren kan hämta den igen genom att gå av och på rutan.
 
 ## 8. Leave (häxan)
-Häxans favoritkaka är alltid `äppelpaj`. Eftersom katten bara kan bära en kaka ges den automatiskt. Spelaren gör inget val.
+Häxans favoritkaka är alltid `äppelpaj`. Bär katten en kaka frågas spelaren om den ska ges till häxan och svarar `ja` eller `nej`. Frågan ställs för alla kakor, så att den inte avslöjar vilken som är rätt. Ogiltigt svar ger en ny fråga.
 
-| Katten bär | Resultat |
-|---|---|
-| `äppelpaj` | Kakan ges bort, inventory blir tomt och rutan öppnas. Katten står kvar och väljer nästa steg. |
-| En annan kaka | Katten flyttas till `start` och behåller kakan. |
-| Ingen kaka | Katten flyttas till `start`. |
+| Katten bär | Spelaren svarar | Resultat |
+|---|---|---|
+| `äppelpaj` | `ja` | Kakan ges bort, inventory blir tomt och rutan öppnas. Katten står kvar och väljer nästa steg. |
+| En annan kaka | `ja` | Katten flyttas till `start` och behåller kakan. |
+| Valfri kaka | `nej` | Katten skickas tillbaka och behåller kakan. |
+| Ingen kaka | Får ingen fråga | Katten flyttas till `start`. |
 
 När häxan har fått sin kaka fungerar `leave` som `free` resten av spelet.
 
@@ -126,10 +127,11 @@ Varje tur får spelaren ett meddelande. Logiken är att varje drag ger ett resul
 | `question` | `question_intro` följt av frågan |
 | Rätt eller fel svar | `question_correct` eller `question_wrong` |
 | `fetch` | `fetch` följt av kakorna |
-| `leave` | `leave` följt av resultatet |
+| `leave` när katten bär en kaka | `leave` följt av `witch_offer` |
 | Häxan får rätt kaka | `witch_correct` |
 | Häxan får fel kaka | `witch_wrong` |
-| Katten har ingen kaka | `witch_no_cake` |
+| Spelaren svarar `nej` | `witch_declined` |
+| `leave` när katten saknar kaka | `leave` följt av `witch_no_cake` |
 | `home` | `home` |
 
 Texterna finns i `cat_lost_story.json`:
@@ -151,6 +153,8 @@ Texterna finns i `cat_lost_story.json`:
   "question_intro": "En gammal katt på en mur spärrar vägen. Svara rätt, säger den, så får du gå vidare.",
   "question_correct": "Rätt! Den gamla katten nickar och flyttar på sig.",
   "question_wrong": "Fel! Den gamla katten fräser och du får gå tillbaka.",
+  "witch_offer": "Vill du ge häxan din {cake}? (ja/nej)",
+  "witch_declined": "Du behåller kakan och backar undan. Jag väntar här, ropar häxan efter dig.",
   "witch_correct": "Mmm, äppelpaj! Häxan smaskar nöjt och försvinner in bakom busken. Vägen hem är fri.",
   "witch_wrong": "Fy, den kakan tycker jag inte om! Häxan viftar med handen och allt blir dimmigt. Du vaknar på parkeringen igen.",
   "witch_no_cake": "Har du ingen kaka med dig? Häxan viftar med handen och allt blir dimmigt. Du vaknar på parkeringen igen.",
@@ -209,6 +213,7 @@ Testerna använder `unittest` och täcker följande:
 - [ ] Fel svar skickar tillbaka katten från båda riktningarna, och en frågeruta ställer en ny fråga vid nästa besök.
 - [ ] `fetch` visar 5 alternativ utan kaka och 4 med kaka, och inventory har aldrig mer än en kaka.
 - [ ] `leave` släpper bara förbi `äppelpaj`. Fel kaka eller ingen kaka flyttar katten till `start`, och fel kaka finns kvar i inventory.
+- [ ] `leave` frågar om kakan ska ges bort när katten bär en kaka. `nej` skickar tillbaka katten med kakan kvar, och ogiltigt svar ger en ny fråga.
 - [ ] `leave` fungerar som `free` när häxan har fått sin kaka.
 - [ ] `home` kan inte nås utan att häxan har fått sin kaka.
 - [ ] Varje typ av resultat ger rätt text, och berättelsen på `start` visas bara när spelet startar.
