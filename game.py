@@ -33,9 +33,10 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types as genai_types
 from openinference.instrumentation.google_adk import GoogleADKInstrumentor
 
-load_dotenv(Path(__file__).parent / "cat_goes_home" / ".env", override=True)
+load_dotenv()
 
-PHOENIX_ENDPOINT = os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "http://localhost:6006/v1/traces")
+PHOENIX_ENDPOINT = os.getenv(
+    "PHOENIX_COLLECTOR_ENDPOINT", "http://localhost:6006/v1/traces")
 VICTORY_MODEL = os.getenv("GOOGLE_MODEL", "gemini-3.5-flash-lite")
 
 tracer_provider = register(
@@ -104,7 +105,8 @@ class ObstacleStoryAgent:
             session_id=session_id,
         )
 
-        runner = Runner(agent=self._agent, app_name=app_name, session_service=session_service)
+        runner = Runner(agent=self._agent, app_name=app_name,
+                        session_service=session_service)
         content = genai_types.Content(
             role="user",
             parts=[
@@ -131,10 +133,11 @@ class ObstacleStoryAgent:
 
         return story_line
 
-    def tell_story(self, obstacle_name: str, skill_text: str) -> str:
-        story_line = asyncio.run(self._tell_story_async(obstacle_name, skill_text))
+    async def tell_story(self, obstacle_name: str, skill_text: str) -> str:
+        story_line = await self._tell_story_async(obstacle_name, skill_text)
         if not story_line:
-            raise RuntimeError(f"Story agent did not return a story for {obstacle_name}.")
+            raise RuntimeError(
+                f"Story agent did not return a story for {obstacle_name}.")
         return story_line
 
 
@@ -166,11 +169,13 @@ class VictoryAgent:
             session_id=session_id,
         )
 
-        runner = Runner(agent=self._agent, app_name=app_name, session_service=session_service)
+        runner = Runner(agent=self._agent, app_name=app_name,
+                        session_service=session_service)
 
         content = genai_types.Content(
             role="user",
-            parts=[genai_types.Part(text="The cat reached home safely. Give the one-liner now.")],
+            parts=[genai_types.Part(
+                text="The cat reached home safely. Give the one-liner now.")],
         )
 
         joke_line = None
@@ -186,8 +191,8 @@ class VictoryAgent:
 
         return joke_line
 
-    def celebrate(self) -> str:
-        joke_line = asyncio.run(self._adk_celebrate())
+    async def celebrate(self) -> str:
+        joke_line = await self._adk_celebrate()
         if not joke_line:
             raise RuntimeError("Victory agent did not return a joke line.")
         return joke_line
@@ -208,7 +213,7 @@ def load_riddles(obstacle_dir: Path) -> list[Riddle]:
         a_match = re.search(r"Answer:\s*(.+)", block)
         if q_match and a_match:
             riddles.append(Riddle(question=q_match.group(1).strip(),
-                                   answer=a_match.group(1).strip().lower()))
+                                  answer=a_match.group(1).strip().lower()))
     return riddles
 
 
@@ -246,13 +251,13 @@ class ObstacleNode:
         self.asked.append(riddle.question)
         return riddle
 
-    def ask(self, story_agent: ObstacleStoryAgent) -> str:
+    async def ask(self, story_agent: ObstacleStoryAgent) -> str:
         """
         Runs one round at this obstacle: tell the obstacle story, ask a
         riddle, check the answer, update attempts, and return a route
         string ("CORRECT", "RETRY", or "FAILED_BACK").
         """
-        story_line = story_agent.tell_story(self.name, self.skill_text)
+        story_line = await story_agent.tell_story(self.name, self.skill_text)
         print(f"\n✨ {story_line}")
 
         riddle = self.pick_riddle()
@@ -268,11 +273,13 @@ class ObstacleNode:
         self.attempts += 1
         if self.attempts >= MAX_ATTEMPTS:
             self.attempts = 0
-            print(f"❌ Wrong {MAX_ATTEMPTS} times. The cat gets spooked and retreats!")
+            print(
+                f"❌ Wrong {MAX_ATTEMPTS} times. The cat gets spooked and retreats!")
             return "FAILED_BACK"
         else:
             remaining = MAX_ATTEMPTS - self.attempts
-            print(f"❌ Not quite. ({remaining} attempt(s) left before the cat backs off)")
+            print(
+                f"❌ Not quite. ({remaining} attempt(s) left before the cat backs off)")
             return "RETRY"
 
 
@@ -281,9 +288,12 @@ class ObstacleNode:
 # ---------------------------------------------------------------------------
 
 def build_graph():
-    obstacle_river = ObstacleNode.load("obstacle_river", "Obstacle 1: The River")
-    obstacle_fence = ObstacleNode.load("obstacle_fence", "Obstacle 2: The Fence")
-    obstacle_street = ObstacleNode.load("obstacle_street", "Obstacle 3: The Busy Street")
+    obstacle_river = ObstacleNode.load(
+        "obstacle_river", "Obstacle 1: The River")
+    obstacle_fence = ObstacleNode.load(
+        "obstacle_fence", "Obstacle 2: The Fence")
+    obstacle_street = ObstacleNode.load(
+        "obstacle_street", "Obstacle 3: The Busy Street")
 
     # This mirrors the edges=[...] list from google.adk.workflow.Workflow
     edges = {
@@ -313,7 +323,7 @@ def build_graph():
 # Runtime loop (stand-in for the ADK scheduler)
 # ---------------------------------------------------------------------------
 
-def run_game():
+async def run_game():
     print("🐱 Cat Goes Home — the journey begins!\n")
     victory_agent = VictoryAgent()
     story_agent = ObstacleStoryAgent()
@@ -326,16 +336,17 @@ def run_game():
         while True:
             with tracer.start_as_current_span(f"game.{current_node.name}") as node_span:
                 node_span.set_attribute("game.node", current_node.name)
-                route = current_node.ask(story_agent)
+                route = await current_node.ask(story_agent)
                 node_span.set_attribute("game.route", route)
 
                 next_step = edges[current_node.name][route]
-                node_span.set_attribute("game.next_step", getattr(next_step, "name", str(next_step)))
+                node_span.set_attribute("game.next_step", getattr(
+                    next_step, "name", str(next_step)))
 
                 if next_step == "HOME":
                     span.set_attribute("game.outcome", "won")
                     with tracer.start_as_current_span("game.victory_agent"):
-                        funny_line = victory_agent.celebrate()
+                        funny_line = await victory_agent.celebrate()
                     print("\n🏠 The cat made it home! 🎉 Game over — you won!")
                     print(f"😹 {funny_line}")
                     tracer_provider.force_flush()
@@ -345,4 +356,4 @@ def run_game():
 
 
 if __name__ == "__main__":
-    run_game()
+    asyncio.run(run_game())

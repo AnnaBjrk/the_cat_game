@@ -21,6 +21,7 @@ phoenix serve
 http://localhost:6006
 """
 
+from cat_goes_home.agent import root_agent
 import asyncio
 from pathlib import Path
 
@@ -33,22 +34,21 @@ import os
 from phoenix.otel import register
 from openinference.instrumentation.google_adk import GoogleADKInstrumentor
 
-# .env lives in cat_goes_home/, not next to this script, and load_dotenv()
-# only searches upward from the current working directory — it won't find
-# a .env in a subfolder. Point it there explicitly.
-load_dotenv(Path(__file__).parent / "cat_goes_home" / ".env")
+# .env lives next to this script, in the project root. load_dotenv() searches
+# upward from this file's folder, so it finds it from any working directory.
+load_dotenv()
 
-from cat_goes_home.agent import root_agent
 
 APP_NAME = "cat_goes_home_game"
 USER_ID = "local_player"
 SESSION_ID = "local_session"
-PHOENIX_ENDPOINT = os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "http://localhost:6006/v1/traces")
+PHOENIX_ENDPOINT = os.getenv(
+    "PHOENIX_COLLECTOR_ENDPOINT", "http://localhost:6006/v1/traces")
 
 
 async def main():
 
-# initialize the tracing provider once; let Phoenix handle the ADK instrumentation
+    # initialize the tracing provider once; let Phoenix handle the ADK instrumentation
     tracer_provider = register(
         project_name="cat-goes-home",
         endpoint=PHOENIX_ENDPOINT,
@@ -61,13 +61,15 @@ async def main():
     await session_service.create_session(
         app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
     )
-    runner = Runner(agent=root_agent, app_name=APP_NAME, session_service=session_service)
+    runner = Runner(agent=root_agent, app_name=APP_NAME,
+                    session_service=session_service)
 
     print("🐱 Cat Goes Home — the journey begins! (type 'quit' to exit)\n")
 
     user_text = "Let's begin!"
     while True:
-        content = types.Content(role="user", parts=[types.Part(text=user_text)])
+        content = types.Content(
+            role="user", parts=[types.Part(text=user_text)])
 
         async for event in runner.run_async(
             user_id=USER_ID, session_id=SESSION_ID, new_message=content
@@ -85,4 +87,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
