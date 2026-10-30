@@ -29,3 +29,4 @@ These commands run the archived game. Cat Lost version 1 needs no installed pack
 - Prefer readable code over defensive code. Don't add fallbacks, default values, or extra checks; let failures surface as errors with a clear message.
 - Add a runtime check only when the spec asks for it. Tests check what we control, such as the content files in this repo, so the game doesn't check them again when it starts.
 - Never hardcode a value to work around a problem. Fix the cause.
+- Write commit messages in Swedish with a heading and a few lines on what changed and why. When reporting a commit in chat, give the heading and then the commit id.
