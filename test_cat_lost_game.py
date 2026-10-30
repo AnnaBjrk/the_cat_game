@@ -188,9 +188,9 @@ class MovementTest(unittest.TestCase):
     def test_edge_of_map_stops_the_cat(self):
         for command in ["upp", "vänster"]:
             with self.subTest(command=command):
-                outcome, state = step(make_game(),command)
+                outcome, state = step(make_game(), command)
 
-                self.assertEqual(outcome, Outcome.BLOCKED)
+                self.assertEqual(outcome, Outcome.OFF_MAP)
                 self.assertEqual(state.position, (0, 0))
                 self.assertEqual(state.discovered, {(0, 0)})
 
