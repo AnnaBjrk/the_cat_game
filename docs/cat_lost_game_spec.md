@@ -213,28 +213,28 @@ När katten når `home` dansar en gul/orange ASCII-katt i terminalen.
 
 ### Klart när
 Testerna använder `unittest` och täcker följande:
-- [ ] Vägen hem går att spela: till `fetch`, välj `äppelpaj`, tillbaka till (0,1), ned till frågan på (2,1), höger till (2,3), ned till `leave`, höger till `home`.
-- [ ] Vägg, kanten av kartan och ogiltiga kommandon flyttar inte katten och ger rätt meddelande.
-- [ ] Fel svar skickar tillbaka katten från båda riktningarna, och en frågeruta ställer en ny fråga vid nästa besök.
-- [ ] `fetch` visar 5 alternativ utan kaka och 4 med kaka, och inventory har aldrig mer än en kaka.
-- [ ] `leave` släpper bara förbi `äppelpaj`. Fel kaka eller ingen kaka flyttar katten till `start`, och fel kaka finns kvar i inventory.
-- [ ] `leave` frågar om kakan ska ges bort när katten bär en kaka. `nej` skickar tillbaka katten med kakan kvar, och ogiltigt svar ger en ny fråga.
-- [ ] `leave` fungerar som `free` när häxan har fått sin kaka.
-- [ ] `home` kan inte nås utan att häxan har fått sin kaka.
-- [ ] Varje typ av resultat ger rätt text, och berättelsen på `start` visas bara när spelet startar.
-- [ ] Rutor visas först efter besök eller försök att gå in.
-- [ ] JSON-filen har minst 10 frågor, varje fråga har exakt 4 svarsalternativ och `answer` finns bland `choices`.
-- [ ] En saknad eller ogiltig JSON-fil ger ett tydligt felmeddelande.
-- [ ] Spelet startar och går att avsluta med `avsluta`, även under en fråga och ett kakval.
-- [ ] Alla rutor på kartan är 5 tecken breda.
-- [ ] Kommandon fungerar oavsett stor eller liten bokstav och med mellanslag runt, inklusive `vänster` och `höger`.
-- [ ] Frågor upprepas inte förrän alla har använts, och ett ogiltigt svar ger inget straff.
-- [ ] När katten skickas tillbaka utlöser rutan inget nytt.
-- [ ] Katten kan ta sig ut ur återvändsgränden via frågan på (4,0).
-- [ ] `fetch` erbjuder samma kakor varje gång, utan den kaka katten bär, och ogiltigt val ger en ny fråga.
-- [ ] Alla texter i avsnitt 9 finns i `cat_lost_story.json`, och fria rutor ger en text från `free_descriptions`.
-- [ ] Spellogiken kan spela hela vägen hem utan `input()` och `print()`.
-- [ ] `cat_lost_game.py` laddar inga AI-paket, spelet startar på under 1 sekund och alla tester körs på under 2 sekunder.
+- [x] Vägen hem går att spela: till `fetch`, välj `äppelpaj`, tillbaka till (0,1), ned till frågan på (2,1), höger till (2,3), ned till `leave`, höger till `home`.
+- [x] Vägg, kanten av kartan och ogiltiga kommandon flyttar inte katten och ger rätt meddelande.
+- [x] Fel svar skickar tillbaka katten från båda riktningarna, och en frågeruta ställer en ny fråga vid nästa besök.
+- [x] `fetch` visar 5 alternativ utan kaka och 4 med kaka, och inventory har aldrig mer än en kaka.
+- [x] `leave` släpper bara förbi `äppelpaj`. Fel kaka eller ingen kaka flyttar katten till `start`, och fel kaka finns kvar i inventory.
+- [x] `leave` frågar om kakan ska ges bort när katten bär en kaka. `nej` skickar tillbaka katten med kakan kvar, och ogiltigt svar ger en ny fråga.
+- [x] `leave` fungerar som `free` när häxan har fått sin kaka.
+- [x] `home` kan inte nås utan att häxan har fått sin kaka.
+- [x] Varje typ av resultat ger rätt text, och berättelsen på `start` visas bara när spelet startar.
+- [x] Rutor visas först efter besök eller försök att gå in.
+- [x] JSON-filen har minst 10 frågor, varje fråga har exakt 4 svarsalternativ och `answer` finns bland `choices`.
+- [x] En saknad eller ogiltig JSON-fil ger ett tydligt felmeddelande.
+- [x] Spelet startar och går att avsluta med `avsluta`, även under en fråga och ett kakval.
+- [x] Alla rutor på kartan är 5 tecken breda.
+- [x] Kommandon fungerar oavsett stor eller liten bokstav och med mellanslag runt, inklusive `vänster` och `höger`.
+- [x] Frågor upprepas inte förrän alla har använts, och ett ogiltigt svar ger inget straff.
+- [x] När katten skickas tillbaka utlöser rutan inget nytt.
+- [x] Katten kan ta sig ut ur återvändsgränden via frågan på (4,0).
+- [x] `fetch` erbjuder samma kakor varje gång, utan den kaka katten bär, och ogiltigt val ger en ny fråga.
+- [x] Alla texter i avsnitt 9 finns i `cat_lost_story.json`, och fria rutor ger en text från `free_descriptions`.
+- [x] Spellogiken kan spela hela vägen hem utan `input()` och `print()`.
+- [x] `cat_lost_game.py` laddar inga AI-paket, spelet startar på under 1 sekund och alla tester körs på under 2 sekunder.
 
 Kontrolleras för hand:
 - **Animeringen:** katten är gul/orange och dansar, pågår i cirka 3 sekunder och terminalens färger är normala efteråt.

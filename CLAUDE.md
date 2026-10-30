@@ -1,11 +1,14 @@
 # Cat Lost
 
-The main game, under construction: the player guides a lost cat home across a 5x5 grid, answering questions and bringing the witch her favourite cake. Version 1 is plain Python with no AI. See `docs/` for the spec and build plan.
+The main game: the player guides a lost cat home across a 5x5 grid, answering questions and bringing the witch her favourite cake. Version 1 is plain Python with no AI. See `docs/` for the spec and build plan.
 
 The earlier game, Cat Goes Home, is archived in `arkiv/`. It is a riddle game built with Google ADK and traced with Arize Phoenix.
 
 ## Layout
 
+- `cat_lost_game.py`: rules, texts, and terminal interface for Cat Lost
+- `cat_lost_questions.json` and `cat_lost_story.json`: questions and story texts
+- `test_cat_lost_game.py`: tests
 - `docs/`: spec and build plan for Cat Lost. Read both before working on it.
 - `arkiv/`: the archived Cat Goes Home game
 - `arkiv/game.py`: self-contained game loop that reads riddles from `arkiv/skills/`
@@ -15,7 +18,10 @@ The earlier game, Cat Goes Home, is archived in `arkiv/`. It is a riddle game bu
 
 ## Commands
 
-These commands run the archived game. Cat Lost version 1 needs no installed packages.
+- Play Cat Lost: `python3 cat_lost_game.py`
+- Run the tests: `python3 -m unittest`
+
+These commands are for the archived game. Cat Lost version 1 needs no installed packages.
 
 - Install: `pip install -r requirements.txt`
 - Play the archived game: `python arkiv/game.py`

@@ -5,6 +5,7 @@ import random
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -523,7 +524,9 @@ class HomeTest(unittest.TestCase):
 
         self.assertNotIn(HOME_POSITION, seen)
 
-    def test_whole_way_home_can_be_played_without_a_terminal(self):
+    @mock.patch("builtins.print", side_effect=AssertionError("print används"))
+    @mock.patch("builtins.input", side_effect=AssertionError("input används"))
+    def test_whole_way_home_can_be_played_without_a_terminal(self, _input, _print):
         state = make_game()
         for command in ["höger", "höger", "höger", "höger"]:
             _, state = step(state, command)
@@ -834,6 +837,49 @@ class WinAnimationTest(unittest.TestCase):
             for line in lines:
                 self.assertLessEqual(len(line), 80)
                 self.assertEqual(len(line), len(lines[0]))
+
+
+class PerformanceTest(unittest.TestCase):
+    game_file = Path(__file__).with_name("cat_lost_game.py")
+
+    def test_game_loads_no_ai_packages(self):
+        code = (
+            "import sys; import cat_lost_game; "
+            "print(sorted({name.split('.')[0] for name in sys.modules}))"
+        )
+
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            cwd=self.game_file.parent,
+            capture_output=True,
+            encoding="utf-8",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for package in ["google", "phoenix", "opentelemetry", "openinference", "dotenv"]:
+            self.assertNotIn(f"'{package}'", result.stdout)
+
+    def test_game_starts_in_under_a_second(self):
+        started = time.perf_counter()
+
+        subprocess.run(
+            [sys.executable, str(self.game_file)],
+            input="avsluta\n",
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
+        )
+
+        self.assertLess(time.perf_counter() - started, 1)
+
+    def test_game_responds_in_under_100_ms(self):
+        state = make_game()
+
+        started = time.perf_counter()
+        _, state = step(state, "höger")
+        render_map(state)
+
+        self.assertLess(time.perf_counter() - started, 0.1)
 
 
 if __name__ == "__main__":
