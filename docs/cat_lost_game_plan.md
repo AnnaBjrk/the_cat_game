@@ -27,7 +27,7 @@ JSON-filer → load_content() → Regler → Text → Terminal
 Varje del börjar med tester och avslutas med en commit. Kryssrutan bockas av i samma commit. Testerna körs med `python3 -m unittest`.
 
 - [x] **1. Innehåll:** `cat_lost_story.json`, `cat_lost_questions.json` med minst 10 frågor och `load_content()`. Kraven på frågor och texter kontrolleras i testerna, inte när spelet startar. Frågorna skrivs med agenten `question-writer` och innehållet granskas med agenten `riddle-reviewer`.
-- [ ] **2. Förflyttning:** karta, kommandon, väggar och kanter, upptäckta rutor och `avsluta`.
+- [x] **2. Förflyttning:** karta, kommandon, väggar och kanter, upptäckta rutor och `avsluta`.
 - [ ] **3. Frågor:** fasbyte, frågekö utan upprepning och att fel svar skickar tillbaka katten.
 - [ ] **4. Café och häxa:** kakval, inventory och `leave`. Hela vägen hem spelas i ett test.
 - [ ] **5. Text och karta:** `message_for()` och `render_map()`.
