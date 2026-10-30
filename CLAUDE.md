@@ -20,3 +20,5 @@ A riddle game: the player helps a cat get home by answering a riddle at each obs
 
 - Keep the game family-friendly.
 - Secrets live in `.env`. Never read or commit this file.
+- Prefer readable code over defensive code. Don't add fallbacks; let failures surface as errors with a clear message.
+- Never hardcode a value to work around a problem. Fix the cause.
