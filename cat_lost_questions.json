@@ -1,0 +1,62 @@
+[
+  {
+    "question": "Hur många ben har en spindel?",
+    "choices": ["Sex", "Åtta", "Tio", "Fyra"],
+    "answer": "Åtta"
+  },
+  {
+    "question": "Vilken planet brukar kallas den röda planeten?",
+    "choices": ["Venus", "Saturnus", "Jupiter", "Mars"],
+    "answer": "Mars"
+  },
+  {
+    "question": "Vilken färg får man om man blandar blått och gult?",
+    "choices": ["Grön", "Lila", "Orange", "Brun"],
+    "answer": "Grön"
+  },
+  {
+    "question": "Vem skrev böckerna om Pippi Långstrump?",
+    "choices": ["Elsa Beskow", "Tove Jansson", "Astrid Lindgren", "Selma Lagerlöf"],
+    "answer": "Astrid Lindgren"
+  },
+  {
+    "question": "Vad heter Sveriges huvudstad?",
+    "choices": ["Göteborg", "Stockholm", "Malmö", "Uppsala"],
+    "answer": "Stockholm"
+  },
+  {
+    "question": "Hur många dagar har ett skottår?",
+    "choices": ["364", "365", "367", "366"],
+    "answer": "366"
+  },
+  {
+    "question": "Vilket är världens största landdjur?",
+    "choices": ["Elefant", "Noshörning", "Flodhäst", "Giraff"],
+    "answer": "Elefant"
+  },
+  {
+    "question": "Vad kallas vatten när det har frusit till fast form?",
+    "choices": ["Ånga", "Dimma", "Is", "Dagg"],
+    "answer": "Is"
+  },
+  {
+    "question": "Vilket är världens högsta berg över havsytan?",
+    "choices": ["Mount Everest", "Mont Blanc", "Kilimanjaro", "Aconcagua"],
+    "answer": "Mount Everest"
+  },
+  {
+    "question": "I vilket hav ligger Gotland?",
+    "choices": ["Nordsjön", "Medelhavet", "Svarta havet", "Östersjön"],
+    "answer": "Östersjön"
+  },
+  {
+    "question": "Vilken gas i luften behöver vi andas in för att leva?",
+    "choices": ["Väte", "Syre", "Helium", "Neon"],
+    "answer": "Syre"
+  },
+  {
+    "question": "Vilket av de här instrumenten har svarta och vita tangenter?",
+    "choices": ["Gitarr", "Flöjt", "Piano", "Trumma"],
+    "answer": "Piano"
+  }
+]

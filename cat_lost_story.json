@@ -1,0 +1,21 @@
+{
+  "start_story": "En häxa knackade på kattens hus och sen blev allt dimmigt. Han vaknar här på den här öde parkeringen, blöt och smutsig, och vill bara hem. Men han vet inte var han är... Katten tittar sig omkring och funderar: vart ska han gå?",
+  "blocked": "Här är bara hus. Du kan inte gå den vägen.",
+  "free_descriptions": [
+    "En bil far förbi, sen är allt öde.",
+    "Det börjar regna igen och vår katt fryser.",
+    "Husen blir högre och högre, och det finns ingen att fråga.",
+    "En man skyndar förbi men svarar inte när katten frågar om vägen.",
+    "En lampa blinkar i regnet, en hund skäller bakom en dörr."
+  ],
+  "fetch": "Du går in på ett café som ser öppet ut och frågar efter vägen. Mannen bakom disken vet inte vart du ska gå. Men han bjuder på en kopp te och ber dig ta något att äta. Du är inte hungrig men tar med en kaka. Vilken väljer du?",
+  "leave": "Det här är en gata du känner igen!! Snart är du hemma. Men precis då dyker häxan upp. Hon har stått och väntat på dig bakom en buske. Ha ha, säger hon. Du trodde att du skulle komma hem så lätt. He, he... För att det är kul ska jag ge dig en chans att få komma förbi. Om du misslyckas trollar jag bort dig i staden igen. Jag börjar bli hungrig. Om du ger mig min favoritkaka får du komma hem.",
+
+  "question_intro": "En gammal katt på en mur spärrar vägen. Svara rätt, säger den, så får du gå vidare.",
+  "question_correct": "Rätt! Den gamla katten nickar och flyttar på sig.",
+  "question_wrong": "Fel! Den gamla katten fräser och du får gå tillbaka.",
+  "witch_correct": "Mmm, äppelpaj! Häxan smaskar nöjt och försvinner in bakom busken. Vägen hem är fri.",
+  "witch_wrong": "Fy, den kakan tycker jag inte om! Häxan viftar med handen och allt blir dimmigt. Du vaknar på parkeringen igen.",
+  "witch_no_cake": "Har du ingen kaka med dig? Häxan viftar med handen och allt blir dimmigt. Du vaknar på parkeringen igen.",
+  "home": "Där är ditt hus! Katten slinker in genom dörren, torr, trygg och äntligen hemma."
+}
