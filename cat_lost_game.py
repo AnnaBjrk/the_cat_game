@@ -366,15 +366,18 @@ PROMPTS = {
 def main():
     content = load_content()
     state = new_game(content.questions, random.Random())
-    print(start_message(content.story))
+    message = start_message(content.story)
 
     while state.phase not in (Phase.WON, Phase.QUIT):
         if state.phase == Phase.MOVE:
             print(f"\n{render_map(state)}")
+        print(f"\n{message}")
         outcome, state = step(state, input(PROMPTS[state.phase]))
         if outcome == Outcome.HOME:
             play_win_animation()
-        print(f"\n{message_for(outcome, state, content.story)}")
+        message = message_for(outcome, state, content.story)
+
+    print(f"\n{message}")
 
 
 if __name__ == "__main__":

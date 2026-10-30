@@ -748,6 +748,22 @@ class TerminalTest(unittest.TestCase):
         self.assertIn(load_content().story["start_story"], result.stdout)
         self.assertIn("Kaka: ingen", result.stdout)
 
+    def test_map_and_cake_come_before_the_message_after_a_move(self):
+        moves = iter(["höger", "avsluta"])
+        output = io.StringIO()
+        shown_before_input = []
+
+        def read_input(prompt):
+            shown_before_input.append(output.getvalue())
+            return next(moves)
+
+        with mock.patch("builtins.input", read_input), contextlib.redirect_stdout(output):
+            main()
+
+        descriptions = load_content().story["free_descriptions"]
+        endings = [f"Kaka: ingen\n\n{description}\n" for description in descriptions]
+        self.assertTrue(shown_before_input[1].endswith(tuple(endings)), shown_before_input[1])
+
     def test_whole_game_runs_through_the_terminal_loop(self):
         moves = iter(["höger"] * 4 + ["vänster"] * 3 + ["ner"] * 2 + ["höger", "höger", "ner", "höger"])
         games = []

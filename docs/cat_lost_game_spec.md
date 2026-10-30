@@ -170,6 +170,7 @@ Kartan skrivs ut före varje drag:
 - Rutorna visas på svenska: `start`, `fri`, `hus`, `fråga`, `café`, `häxa`, `hem`.
 - Inventory visas tillsammans med kartan.
 - Alla rutor är 5 tecken breda.
+- Ordningen är karta, kaka, tom rad, meddelande och sist frågan om vart katten ska gå.
 
 Exempel:
 ```text
@@ -179,6 +180,8 @@ Exempel:
 [  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
 [  ?  ] [  ?  ] [  ?  ] [  ?  ] [  ?  ]
 Kaka: ingen
+
+En bil far förbi, sen är allt öde.
 Vart vill du gå? (upp/ner/vänster/höger/avsluta):
 ```
 
