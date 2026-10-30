@@ -8,6 +8,7 @@ A riddle game: the player helps a cat get home by answering a riddle at each obs
 - `main.py`: CLI runner for the ADK workflow agent
 - `cat_goes_home/agent.py`: the ADK workflow (`root_agent`)
 - `skills/`: game content used by the ADK agents. These are not Claude Code skills, which live in `.claude/skills/`.
+- `docs/`: spec and build plan for Cat Lost, the next game. Read both before working on it.
 
 ## Commands
 
