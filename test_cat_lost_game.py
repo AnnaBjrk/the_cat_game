@@ -1,11 +1,20 @@
+import contextlib
+import io
 import json
 import random
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from cat_lost_game import (
+    ANIMATION_FRAMES,
+    ANSI_RESET,
     CAKES,
+    CAT_FRAMES,
+    FRAME_SECONDS,
     FAVORITE_CAKE,
     FETCH_POSITION,
     HOME_POSITION,
@@ -16,8 +25,10 @@ from cat_lost_game import (
     Outcome,
     Phase,
     load_content,
+    main,
     message_for,
     new_game,
+    play_win_animation,
     render_map,
     start_message,
     step,
@@ -635,6 +646,86 @@ class RenderMapTest(unittest.TestCase):
         state.inventory = ["äppelpaj"]
 
         self.assertIn("Kaka: äppelpaj", render_map(state))
+
+
+class TerminalTest(unittest.TestCase):
+    def test_game_starts_and_can_be_quit(self):
+        game_file = Path(__file__).with_name("cat_lost_game.py")
+
+        result = subprocess.run(
+            [sys.executable, str(game_file)],
+            input="avsluta\n",
+            capture_output=True,
+            encoding="utf-8",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(load_content().story["start_story"], result.stdout)
+        self.assertIn("Kaka: ingen", result.stdout)
+
+    def test_whole_game_runs_through_the_terminal_loop(self):
+        moves = iter(["höger"] * 4 + ["vänster"] * 3 + ["ner"] * 2 + ["höger", "höger", "ner", "höger"])
+        games = []
+
+        def start_game(questions, rng):
+            games.append(new_game(questions, rng))
+            return games[0]
+
+        def read_input(prompt):
+            state = games[0]
+            if state.phase == Phase.ANSWER_QUESTION:
+                return correct_answer(state)
+            if state.phase == Phase.CHOOSE_CAKE:
+                return str(state.cake_choices.index(FAVORITE_CAKE) + 1)
+            return next(moves)
+
+        output = io.StringIO()
+        with (
+            mock.patch("cat_lost_game.new_game", start_game),
+            mock.patch("builtins.input", read_input),
+            mock.patch("cat_lost_game.play_win_animation", lambda: print("<dans>")),
+            contextlib.redirect_stdout(output),
+        ):
+            main()
+
+        story = load_content().story
+        self.assertEqual(games[0].phase, Phase.WON)
+        self.assertLess(output.getvalue().index("<dans>"), output.getvalue().index(story["home"]))
+
+
+class WinAnimationTest(unittest.TestCase):
+    def play(self):
+        output = io.StringIO()
+        with mock.patch("time.sleep") as sleep, contextlib.redirect_stdout(output):
+            play_win_animation()
+        return output.getvalue(), sleep
+
+    def test_animation_lasts_about_three_seconds(self):
+        self.assertAlmostEqual(ANIMATION_FRAMES * FRAME_SECONDS, 3, delta=0.5)
+
+        _, sleep = self.play()
+
+        self.assertEqual(sleep.call_count, ANIMATION_FRAMES)
+
+    def test_animation_has_at_least_two_alternating_frames(self):
+        output, _ = self.play()
+
+        self.assertGreaterEqual(len(CAT_FRAMES), 2)
+        for _, frame in CAT_FRAMES:
+            self.assertIn(frame, output)
+
+    def test_colors_are_reset_at_the_end(self):
+        output, _ = self.play()
+
+        self.assertTrue(output.rstrip().endswith(ANSI_RESET))
+
+    def test_frames_fit_the_terminal_and_overwrite_each_other(self):
+        for _, frame in CAT_FRAMES:
+            lines = frame.split("\n")
+            self.assertEqual(len(lines), len(CAT_FRAMES[0][1].split("\n")))
+            for line in lines:
+                self.assertLessEqual(len(line), 80)
+                self.assertEqual(len(line), len(lines[0]))
 
 
 if __name__ == "__main__":

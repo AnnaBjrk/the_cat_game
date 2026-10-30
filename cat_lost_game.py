@@ -2,6 +2,7 @@
 
 import json
 import random
+import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
@@ -46,6 +47,27 @@ INVALID_COMMAND_TEXT = f"Det kommandot finns inte. {COMMANDS_TEXT}"
 INVALID_CHOICE_TEXT = "Svara med en av siffrorna:"
 CAKE_CHOSEN_TEXT = "Du tar med dig en {cake}."
 QUIT_TEXT = "Hej då! Katten väntar på att du ska komma tillbaka."
+
+ANSI_YELLOW = "\033[33m"
+ANSI_ORANGE = "\033[38;5;208m"
+ANSI_RESET = "\033[0m"
+CAT_FRAMES = [
+    (ANSI_YELLOW, "\n".join([
+        r"  /\_/\     ",
+        r" ( ^.^ )/   ",
+        r"  /   \     ",
+        r" _|   |_    ",
+    ])),
+    (ANSI_ORANGE, "\n".join([
+        r"     /\_/\  ",
+        r"   \( ^.^ ) ",
+        r"     /   \  ",
+        r"    _|   |_ ",
+    ])),
+]
+FRAME_HEIGHT = 4
+ANIMATION_FRAMES = 10
+FRAME_SECONDS = 0.3
 
 QUIT_COMMAND = "avsluta"
 DIRECTIONS = {
@@ -288,3 +310,37 @@ def render_map(state):
     ]
     cake = state.inventory[0] if state.inventory else "ingen"
     return "\n".join([*lines, f"Kaka: {cake}"])
+
+
+def play_win_animation():
+    for number in range(ANIMATION_FRAMES):
+        if number > 0:
+            print(f"\033[{FRAME_HEIGHT}A", end="")
+        color, frame = CAT_FRAMES[number % len(CAT_FRAMES)]
+        print(f"{color}{frame}{ANSI_RESET}", flush=True)
+        time.sleep(FRAME_SECONDS)
+
+
+PROMPTS = {
+    Phase.MOVE: "Vart vill du gå? (upp/ner/vänster/höger/avsluta): ",
+    Phase.ANSWER_QUESTION: "Ditt svar: ",
+    Phase.CHOOSE_CAKE: "Din kaka: ",
+}
+
+
+def main():
+    content = load_content()
+    state = new_game(content.questions, random.Random())
+    print(start_message(content.story))
+
+    while state.phase not in (Phase.WON, Phase.QUIT):
+        if state.phase == Phase.MOVE:
+            print(f"\n{render_map(state)}")
+        outcome, state = step(state, input(PROMPTS[state.phase]))
+        if outcome == Outcome.HOME:
+            play_win_animation()
+        print(f"\n{message_for(outcome, state, content.story)}")
+
+
+if __name__ == "__main__":
+    main()
